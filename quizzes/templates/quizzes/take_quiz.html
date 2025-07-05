@@ -1,0 +1,300 @@
+{% extends dashboard_template %}
+
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="quiz-header glass-morphism p-4 mb-5 rounded-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-5 fw-bold gradient-text mb-2">{{ quiz.title }}</h1>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-clock-history me-1"></i> 
+                        <span id="timer">00:00</span>
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                        <i class="bi bi-question-circle me-1"></i> 
+                        {{ questions|length }} Questions
+                    </span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar-glass">
+                    <div class="progress-fill" id="quizProgress" style="width: 0%"></div>
+                </div>
+                <small class="text-muted" id="progressText">Question 1 of {{ questions|length }}</small>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="quizForm">
+        {% csrf_token %}
+        <div class="quiz-questions">
+            {% for question in questions %}
+            <div class="question-card card-glass mb-4" id="question-{{ forloop.counter }}" 
+                 {% if not forloop.first %}style="display:none;"{% endif %}>
+                <div class="card-body">
+                    <div class="question-header d-flex justify-content-between mb-4">
+                        <h3 class="question-number">Question #{{ forloop.counter }}</h3>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                            {{ forloop.counter }}/{{ questions|length }}
+                        </span>
+                    </div>
+                    
+                    <h4 class="question-text mb-4">{{ question.text }}</h4>
+                    
+                    <div class="options-grid">
+                        <label class="option-card" for="option-{{ question.id }}-A">
+                            <input type="radio" id="option-{{ question.id }}-A" 
+                                   name="question_{{ question.id }}" value="A" required>
+                            <div class="option-content">
+                                <span class="option-letter">A</span>
+                                <span class="option-text">{{ question.option_a }}</span>
+                            </div>
+                        </label>
+                        
+                        <label class="option-card" for="option-{{ question.id }}-B">
+                            <input type="radio" id="option-{{ question.id }}-B" 
+                                   name="question_{{ question.id }}" value="B">
+                            <div class="option-content">
+                                <span class="option-letter">B</span>
+                                <span class="option-text">{{ question.option_b }}</span>
+                            </div>
+                        </label>
+                        
+                        <label class="option-card" for="option-{{ question.id }}-C">
+                            <input type="radio" id="option-{{ question.id }}-C" 
+                                   name="question_{{ question.id }}" value="C">
+                            <div class="option-content">
+                                <span class="option-letter">C</span>
+                                <span class="option-text">{{ question.option_c }}</span>
+                            </div>
+                        </label>
+                        
+                        <label class="option-card" for="option-{{ question.id }}-D">
+                            <input type="radio" id="option-{{ question.id }}-D" 
+                                   name="question_{{ question.id }}" value="D">
+                            <div class="option-content">
+                                <span class="option-letter">D</span>
+                                <span class="option-text">{{ question.option_d }}</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="quiz-navigation d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-glass" id="prevBtn" disabled>
+                <i class="bi bi-chevron-left me-1"></i> Previous
+            </button>
+            
+            <button type="button" class="btn btn-primary btn-glow" id="nextBtn">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+            
+            <button type="submit" class="btn btn-success btn-glow" id="submitBtn" style="display:none;">
+                Submit Answers <i class="bi bi-check-circle ms-1"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Quiz Specific Styles */
+    .quiz-header {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .progress-container {
+        width: 200px;
+    }
+    
+    .progress-bar-glass {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4361ee, #4cc9f0);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    .question-card {
+        transition: all 0.3s ease;
+    }
+    
+    .question-number {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .question-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .option-card {
+        display: block;
+        position: relative;
+    }
+    
+    .option-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .option-content {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+    
+    .option-card:hover .option-content {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px);
+    }
+    
+    .option-card input[type="radio"]:checked + .option-content {
+        background: rgba(67, 97, 238, 0.2);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 1px var(--primary-color);
+    }
+    
+    .option-letter {
+        width: 30px;
+        height: 30px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .option-text {
+        flex-grow: 1;
+    }
+    
+    .quiz-navigation {
+        padding: 1rem 0;
+    }
+    
+    @media (max-width: 768px) {
+        .quiz-header .d-flex {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quiz navigation functionality
+        const questions = document.querySelectorAll('.question-card');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressFill = document.getElementById('quizProgress');
+        const progressText = document.getElementById('progressText');
+        let currentQuestion = 0;
+        
+        // Update progress
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+            
+            prevBtn.disabled = currentQuestion === 0;
+        }
+        
+        // Navigation handlers
+        nextBtn.addEventListener('click', function() {
+            if (currentQuestion < questions.length - 1) {
+                questions[currentQuestion].style.display = 'none';
+                currentQuestion++;
+                questions[currentQuestion].style.display = 'block';
+                updateProgress();
+            }
+        });
+        
+        prevBtn.addEventListener('click', function() {
+            if (currentQuestion > 0) {
+                questions[currentQuestion].style.display = 'none';
+                currentQuestion--;
+                questions[currentQuestion].style.display = 'block';
+                updateProgress();
+            }
+        });
+        
+        // Timer functionality
+        let seconds = 0;
+        const timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            seconds++;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        
+        // Form submission
+        document.getElementById('quizForm').addEventListener('submit', function() {
+            clearInterval(timerInterval);
+        });
+        
+        // Initialize progress
+        updateProgress();
+        
+        // Add animation to current question
+        questions[currentQuestion].style.opacity = '0';
+        questions[currentQuestion].style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            questions[currentQuestion].style.opacity = '1';
+            questions[currentQuestion].style.transform = 'translateY(0)';
+            questions[currentQuestion].style.transition = 'all 0.5s ease';
+        }, 100);
+    });
+</script>
+{% endblock %}

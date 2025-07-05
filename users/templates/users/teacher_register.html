@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Registration - QuizHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7c3aed;
+            --secondary-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            --shadow-soft: 0 10px 25px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="50" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .image-section {
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .auth-illustration {
+            width: 80%;
+            max-width: 400px;
+            height: auto;
+            z-index: 2;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .form-section {
+            padding: 50px 40px;
+        }
+
+        .brand-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .brand-logo h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-logo p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .form-floating {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-floating input {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px 16px 8px 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-floating input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .form-floating label {
+            color: #6b7280;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .form-floating input:focus + label,
+        .form-floating input:not(:placeholder-shown) + label {
+            color: var(--primary-color);
+            transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+        }
+
+        .btn-register {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .btn-register.loading {
+            pointer-events: none;
+        }
+
+        .btn-register.loading .btn-text {
+            opacity: 0;
+        }
+
+        .btn-register .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-register.loading .spinner {
+            opacity: 1;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .auth-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .auth-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .auth-links a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .auth-links a:hover {
+            color: var(--secondary-color);
+        }
+
+        .teacher-badge {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .form-validation {
+            font-size: 14px;
+            margin-top: 8px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .form-validation.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-validation.error {
+            color: var(--danger-color);
+        }
+
+        .form-validation.success {
+            color: var(--success-color);
+        }
+
+        .password-strength {
+            margin-top: 8px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .auth-card {
+                margin: 20px;
+                border-radius: 16px;
+            }
+            
+            .form-section {
+                padding: 40px 24px;
+            }
+            
+            .brand-logo h1 {
+                font-size: 2rem;
+            }
+            
+            .image-section {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="row g-0 h-100">
+                <!-- Image Section -->
+                <div class="col-lg-6 image-section">
+                    <svg class="auth-illustration" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="teacherGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+                                <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.6" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Teacher figure -->
+                        <circle cx="200" cy="100" r="35" fill="url(#teacherGradient)"/>
+                        <rect x="185" y="135" width="30" height="50" rx="6" fill="url(#teacherGradient)"/>
+                        <!-- Blackboard -->
+                        <rect x="120" y="180" width="160" height="80" rx="8" fill="url(#teacherGradient)" opacity="0.8"/>
+                        <rect x="130" y="190" width="140" height="60" rx="4" fill="rgba(0,0,0,0.1)"/>
+                        <!-- Teaching elements -->
+                        <line x1="140" y1="200" x2="180" y2="200" stroke="white" stroke-width="2"/>
+                        <line x1="140" y1="210" x2="200" y2="210" stroke="white" stroke-width="2"/>
+                        <line x1="140" y1="220" x2="170" y2="220" stroke="white" stroke-width="2"/>
+                        <!-- Academic symbols -->
+                        <circle cx="300" cy="80" r="20" fill="url(#teacherGradient)" opacity="0.7"/>
+                        <text x="300" y="85" text-anchor="middle" fill="white" font-size="16" font-weight="bold">📖</text>
+                        <circle cx="80" cy="120" r="18" fill="url(#teacherGradient)" opacity="0.8"/>
+                        <text x="80" y="125" text-anchor="middle" fill="white" font-size="14" font-weight="bold">🎓</text>
+                        <circle cx="320" cy="160" r="15" fill="url(#teacherGradient)" opacity="0.6"/>
+                        <text x="320" y="165" text-anchor="middle" fill="white" font-size="12" font-weight="bold">✏️</text>
+                    </svg>
+                </div>
+
+                <!-- Form Section -->
+                <div class="col-lg-6">
+                    <div class="form-section">
+                        <div class="brand-logo">
+                            <h1><i class="fas fa-chalkboard-teacher"></i> QuizHub</h1>
+                            <p>Join our platform as an educator</p>
+                        </div>
+
+                        <div class="teacher-badge">
+                            <i class="fas fa-star me-2"></i>
+                            Educator Registration
+                        </div>
+
+                        <form method="POST" id="teacherRegisterForm">
+                            {% csrf_token %}
+                            
+                            <div class="form-floating">
+                                <input type="text" name="full_name" class="form-control" id="fullName" placeholder="Full Name" required>
+                                <label for="fullName"><i class="fas fa-user me-2"></i>Full Name</label>
+                                <div class="form-validation" id="fullNameValidation"></div>
+                            </div>
+
+                            <div class="form-floating">
+                                <input type="email" name="teacher_email" class="form-control" id="email" placeholder="Email" required>
+                                <label for="email"><i class="fas fa-envelope me-2"></i>Teacher Email</label>
+                                <div class="form-validation" id="emailValidation"></div>
+                            </div>
+
+                            <div class="form-floating">
+                                <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                                <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
+                                <div class="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="strengthFill"></div>
+                                    </div>
+                                    <div class="strength-text" id="strengthText">Enter a strong password</div>
+                                </div>
+                                <div class="form-validation" id="passwordValidation"></div>
+                            </div>
+
+                            <button type="submit" class="btn btn-register" id="registerBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-user-tie me-2"></i>Create Teacher Account
+                                </span>
+                                <div class="spinner">
+                                    <div class="spinner-border spinner-border-sm text-light" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <div class="auth-links">
+                                <p class="mb-0">Already have an account? 
+                                    <a href="{% url 'users:login' %}">Sign In</a>
+                                </p>
+                                <p class="mt-2 mb-0">Are you a student? 
+                                    <a href="{% url 'users:student_register' %}">Register as Student</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('teacherRegisterForm');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // Form fields
+            const fields = [
+                { input: document.getElementById('fullName'), validation: document.getElementById('fullNameValidation') },
+                { input: document.getElementById('email'), validation: document.getElementById('emailValidation') },
+                { input: document.getElementById('password'), validation: document.getElementById('passwordValidation') }
+            ];
+
+            // Validation functions
+            function validateField(field, rules) {
+                const value = field.input.value.trim();
+                let isValid = true;
+                let message = '';
+
+                for (let rule of rules) {
+                    if (!rule.test(value)) {
+                        isValid = false;
+                        message = rule.message;
+                        break;
+                    }
+                }
+
+                if (isValid && value !== '') {
+                    message = 'Looks good!';
+                }
+
+                field.validation.className = `form-validation show ${isValid && value !== '' ? 'success' : 'error'}`;
+                field.validation.innerHTML = `<i class="fas ${isValid && value !== '' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1"></i>${message}`;
+
+                return isValid;
+            }
+
+            // Password strength checker
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                let feedback = '';
+
+                if (password.length >= 8) strength++;
+                if (/[a-z]/.test(password)) strength++;
+                if (/[A-Z]/.test(password)) strength++;
+                if (/[0-9]/.test(password)) strength++;
+                if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+                const strengthFill = document.getElementById('strengthFill');
+                const strengthText = document.getElementById('strengthText');
+
+                switch (strength) {
+                    case 0:
+                    case 1:
+                        strengthFill.style.width = '20%';
+                        strengthFill.style.background = '#ef4444';
+                        feedback = 'Very weak password';
+                        break;
+                    case 2:
+                        strengthFill.style.width = '40%';
+                        strengthFill.style.background = '#f59e0b';
+                        feedback = 'Weak password';
+                        break;
+                    case 3:
+                        strengthFill.style.width = '60%';
+                        strengthFill.style.background = '#eab308';
+                        feedback = 'Fair password';
+                        break;
+                    case 4:
+                        strengthFill.style.width = '80%';
+                        strengthFill.style.background = '#22c55e';
+                        feedback = 'Good password';
+                        break;
+                    case 5:
+                        strengthFill.style.width = '100%';
+                        strengthFill.style.background = '#7c3aed';
+                        feedback = 'Strong password';
+                        break;
+                }
+
+                strengthText.textContent = feedback;
+                strengthText.style.color = strengthFill.style.background;
+            }
+
+            // Field validations
+            fields[0].input.addEventListener('blur', function() {
+                const rules = [
+                    { test: (val) => val.length > 0, message: 'Full name is required' },
+                    { test: (val) => val.length >= 2, message: 'Name must be at least 2 characters' },
+                    { test: (val) => /^[a-zA-Z\s]+$/.test(val), message: 'Name should only contain letters' }
+                ];
+                validateField(fields[0], rules);
+            });
+
+            fields[1].input.addEventListener('blur', function() {
+                const rules = [
+                    { test: (val) => val.length > 0, message: 'Email is required' },
+                    { test: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), message: 'Please enter a valid email address' },
+                    { test: (val) => /\.(edu|ac\.|org)/.test(val), message: 'Please use an institutional email address' }
+                ];
+                validateField(fields[1], rules);
+            });
+
+            fields[2].input.addEventListener('input', function() {
+                checkPasswordStrength(this.value);
+            });
+
+            fields[2].input.addEventListener('blur', function() {
+                const rules = [
+                    { test: (val) => val.length > 0, message: 'Password is required' },
+                    { test: (val) => val.length >= 8, message: 'Password must be at least 8 characters' },
+                    { test: (val) => /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(val), message: 'Password must contain uppercase, lowercase, and numbers' }
+                ];
+                validateField(fields[2], rules);
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate all fields
+                let allValid = true;
+                const validationRules = [
+                    [
+                        { test: (val) => val.length > 0, message: 'Full name is required' },
+                        { test: (val) => val.length >= 2, message: 'Name must be at least 2 characters' },
+                        { test: (val) => /^[a-zA-Z\s]+$/.test(val), message: 'Name should only contain letters' }
+                    ],
+                    [
+                        { test: (val) => val.length > 0, message: 'Email is required' },
+                        { test: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), message: 'Please enter a valid email address' },
+                        { test: (val) => /\.(edu|ac\.|org)/.test(val), message: 'Please use an institutional email address' }
+                    ],
+                    [
+                        { test: (val) => val.length > 0, message: 'Password is required' },
+                        { test: (val) => val.length >= 8, message: 'Password must be at least 8 characters' },
+                        { test: (val) => /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(val), message: 'Password must contain uppercase, lowercase, and numbers' }
+                    ]
+                ];
+
+                fields.forEach((field, index) => {
+                    if (!validateField(field, validationRules[index])) {
+                        allValid = false;
+                    }
+                });
+
+                if (allValid) {
+                    registerBtn.classList.add('loading');
+                    
+                    setTimeout(() => {
+                        registerBtn.classList.remove('loading');
+                        this.submit();
+                    }, 2000);
+                }
+            });
+
+            // Input animations
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

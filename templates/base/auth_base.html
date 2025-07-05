@@ -1,0 +1,28 @@
+<!-- templates/base/auth_base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+
+    <!-- SweetAlert2 Message Handling -->
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: 'top-end',
+                    icon: '{% if message.tags == "error" %}error{% else %}success{% endif %}',
+                    title: '{{ message|escapejs }}',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            {% endfor %}
+        {% endif %}
+    </script>
+</body>
+</html>

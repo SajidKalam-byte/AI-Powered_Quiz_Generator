@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+<script>
+    function generateQuiz() {
+        fetch('/ai/generate-quiz/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.quiz) {
+                document.getElementById('quiz').innerText = data.quiz;
+            } else {
+                document.getElementById('quiz').innerText = 'Error generating quiz.';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('quiz').innerText = 'Error connecting to server.';
+        });
+    }
+</script>
+
+</head>
+<body>
+    <h1>{{ message }}</h1>
+    <button onclick="generateQuiz()">Generate Quiz Question</button>
+    <p id="quiz"></p>
+</body>
+</html>

@@ -1,0 +1,274 @@
+{% extends dashboard_template %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-clean p-4 mb-4 fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h2 fw-bold text-primary mb-2">Create New Quiz</h1>
+                        <p class="text-muted mb-0">Build an engaging quiz for your audience</p>
+                    </div>
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-clean">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Quizzes
+                    </a>
+                </div>
+
+                <form method="post" class="quiz-form">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- Title Field -->
+                        <div class="col-12">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-pencil-square me-2 text-primary"></i>Quiz Title
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Give your quiz a catchy and descriptive title</div>
+                        </div>
+                        
+                        <!-- Category and Difficulty -->
+                        <div class="col-md-6">
+                            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-tag me-2 text-primary"></i>Category
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.difficulty.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-speedometer2 me-2 text-primary"></i>Difficulty Level
+                            </label>
+                            {{ form.difficulty }}
+                            {% if form.difficulty.errors %}
+                                <div class="text-danger small mt-1">{{ form.difficulty.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Published Field -->
+                        <div class="col-12">
+                            <div class="card-clean p-3">
+                                <div class="form-check form-switch">
+                                    {{ form.is_published }}
+                                    <label class="form-check-label fw-semibold" for="{{ form.is_published.id_for_label }}">
+                                        <i class="bi bi-globe me-2 text-primary"></i>Publish this quiz
+                                    </label>
+                                </div>
+                                {% if form.is_published.errors %}
+                                    <div class="text-danger small mt-1">{{ form.is_published.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted d-block mt-2">Published quizzes will be visible to other users</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3 mt-5 pt-4 border-top">
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="bi bi-save me-2"></i>Create Quiz
+                        </button>
+                        <button type="reset" class="btn btn-clean px-4">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Form Specific Styles */
+    .quiz-form {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .floating-label {
+        position: relative;
+    }
+    
+    .floating-label label {
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: var(--dark-color);
+        padding: 0 5px;
+        font-size: 0.85rem;
+        color: var(--primary-color);
+        z-index: 1;
+    }
+    
+    .form-control, .form-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        padding: 0.875rem 1rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        color: white;
+    }
+    
+    .input-group-text {
+        background: rgba(67, 97, 238, 0.2);
+        border: none;
+        color: var(--primary-color);
+    }
+    
+    .form-checkbox {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .form-switch .form-check-label {
+        color: white;
+        cursor: pointer;
+    }
+    
+    .form-error {
+        color: var(--danger-color);
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Difficulty-specific colors for options */
+    option[value="easy"] { color: #28a745; }
+    option[value="medium"] { color: #ffc107; }
+    option[value="hard"] { color: #dc3545; }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .d-flex.justify-content-between.align-items-center {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .d-flex.justify-content-center.gap-3 {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .d-flex.justify-content-center.gap-3 .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add floating label effect
+        const formInputs = document.querySelectorAll('.form-control, .form-select');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.parentElement.classList.remove('focused');
+                }
+            });
+            
+            // Initialize focused state for pre-filled values
+            if (input.value) {
+                input.parentElement.parentElement.classList.add('focused');
+            }
+        });
+        
+        // Add animation to form elements
+        const formGroups = document.querySelectorAll('.form-group');
+        formGroups.forEach((group, index) => {
+            group.style.opacity = '0';
+            group.style.transform = 'translateY(20px)';
+            group.style.transition = 'all 0.5s ease ' + (index * 0.1) + 's';
+            
+            setTimeout(() => {
+                group.style.opacity = '1';
+                group.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Add form validation feedback
+        const form = document.querySelector('.quiz-form');
+        const inputs = form.querySelectorAll('.form-control, .form-select');
+        
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim()) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                } else if (this.hasAttribute('required')) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                }
+            });
+        });
+        
+        // Form submission animation
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
+            submitBtn.disabled = true;
+        });
+    });
+</script>
+{% endblock %}

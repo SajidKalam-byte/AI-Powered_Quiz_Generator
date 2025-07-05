@@ -1,0 +1,379 @@
+{% extends dashboard_template %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Results Header -->
+    <div class="card-clean p-4 mb-4 fade-in">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="h3 fw-bold text-primary mb-3">Quiz Results</h1>
+                <h2 class="h4 mb-4">{{ quiz.title }}</h2>
+                
+                <div class="d-flex align-items-center gap-4">
+                    <div class="score-circle">
+                        <svg width="120" height="120" class="score-svg">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--card-border)" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary-color)" stroke-width="8" 
+                                    stroke-dasharray="314" stroke-dashoffset="314" class="score-progress"/>
+                        </svg>
+                        <div class="score-percent">{{ score|div:total|mul:100|floatformat:0 }}%</div>
+                    </div>
+                    
+                    <div class="score-details">
+                        <div class="score-stat text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span>{{ score }} Correct</span>
+                        </div>
+                        <div class="score-stat text-danger">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            <span>{{ total|sub:score }} Incorrect</span>
+                        </div>
+                        <div class="score-stat text-primary">
+                            <i class="bi bi-question-circle-fill me-2"></i>
+                            <span>{{ total }} Total Questions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Quizzes
+                    </a>
+                    <button class="btn btn-outline-primary" onclick="shareResults()">
+                        <i class="bi bi-share me-1"></i>Share Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Review -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h4 fw-bold text-primary mb-0">Review Your Answers</h3>
+        <span class="text-muted">{{ questions|length }} question{{ questions|length|pluralize }}</span>
+    </div>
+    
+    <div class="results-list">
+        {% for question in questions %}
+        <div class="result-card card-clean p-4 mb-4 slide-in {% if answers|get_item:question.id == question.correct_option %}correct-result{% else %}incorrect-result{% endif %}" 
+             style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="question-number">{{ forloop.counter }}</span>
+                    <h4 class="h6 mb-0">Question {{ forloop.counter }}</h4>
+                </div>
+                <span class="badge {% if answers|get_item:question.id == question.correct_option %}bg-success{% else %}bg-danger{% endif %}">
+                    {% if answers|get_item:question.id == question.correct_option %}
+                    <i class="bi bi-check-circle-fill me-1"></i>Correct
+                    {% else %}
+                    <i class="bi bi-x-circle-fill me-1"></i>Incorrect
+                    {% endif %}
+                </span>
+            </div>
+            
+            <p class="question-text lead mb-4">{{ question.text }}</p>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="answer-section">
+                        <h6 class="section-title">Your Answer</h6>
+                        <div class="user-answer {% if answers|get_item:question.id == question.correct_option %}correct{% else %}incorrect{% endif %}">
+                            <span class="option-letter-small">{{ answers|get_item:question.id|default:"?" }}</span>
+                            <span>{{ answers|get_item:question.id|default:"Not answered" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="answer-section">
+                        <h6 class="section-title">Correct Answer</h6>
+                        <div class="correct-answer">
+                            <span class="option-letter-small">{{ question.correct_option }}</span>
+                            <span>{{ question.correct_option }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if question.explanation %}
+            <div class="explanation-section">
+                <h6 class="section-title">
+                    <i class="bi bi-lightbulb-fill text-warning me-2"></i>Explanation
+                </h6>
+                <p class="mb-0">{{ question.explanation }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="options-section mt-4">
+                <h6 class="section-title">All Options</h6>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <div class="mini-option {% if question.correct_option == 'A' %}correct{% endif %} {% if answers|get_item:question.id == 'A' %}user-selected{% endif %}">
+                            <span class="option-letter-mini">A</span>
+                            <span class="option-text-mini">{{ question.option_a }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mini-option {% if question.correct_option == 'B' %}correct{% endif %} {% if answers|get_item:question.id == 'B' %}user-selected{% endif %}">
+                            <span class="option-letter-mini">B</span>
+                            <span class="option-text-mini">{{ question.option_b }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mini-option {% if question.correct_option == 'C' %}correct{% endif %} {% if answers|get_item:question.id == 'C' %}user-selected{% endif %}">
+                            <span class="option-letter-mini">C</span>
+                            <span class="option-text-mini">{{ question.option_c }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mini-option {% if question.correct_option == 'D' %}correct{% endif %} {% if answers|get_item:question.id == 'D' %}user-selected{% endif %}">
+                            <span class="option-letter-mini">D</span>
+                            <span class="option-text-mini">{{ question.option_d }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-5">
+        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary px-5">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quizzes
+        </a>
+    </div>
+</div>
+
+<style>
+    .score-circle {
+        position: relative;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .score-svg {
+        transform: rotate(-90deg);
+    }
+    
+    .score-percent {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .score-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .score-stat {
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .result-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .correct-result {
+        border-left-color: var(--success-color);
+    }
+    
+    .incorrect-result {
+        border-left-color: var(--danger-color);
+    }
+    
+    .question-number {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    
+    .section-title {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .user-answer, .correct-answer {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .user-answer.correct {
+        background: var(--option-correct);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+    
+    .user-answer.incorrect {
+        background: var(--option-incorrect);
+        color: var(--danger-color);
+        border: 1px solid var(--danger-color);
+    }
+    
+    .correct-answer {
+        background: var(--option-correct);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+    
+    .option-letter-small {
+        width: 24px;
+        height: 24px;
+        background: currentColor;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+    
+    .explanation-section {
+        background: var(--quiz-accent);
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .mini-option {
+        background: var(--bg-secondary);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .mini-option.correct {
+        background: var(--option-correct);
+        border-color: var(--success-color);
+    }
+    
+    .mini-option.user-selected:not(.correct) {
+        background: var(--option-incorrect);
+        border-color: var(--danger-color);
+    }
+    
+    .option-letter-mini {
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .mini-option.correct .option-letter-mini {
+        background: var(--success-color);
+    }
+    
+    .mini-option.user-selected:not(.correct) .option-letter-mini {
+        background: var(--danger-color);
+    }
+    
+    .option-text-mini {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+        .row.align-items-center {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+        
+        .col-lg-4.text-lg-end {
+            text-align: left !important;
+            width: 100%;
+        }
+        
+        .d-flex.align-items-center.gap-4 {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+        
+        .d-flex.justify-content-lg-end {
+            justify-content: flex-start !important;
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate the progress circle
+        const scorePercent = parseFloat("{{ score|div:total|mul:100|floatformat:0 }}");
+        const circumference = 2 * Math.PI * 50;
+        const offset = circumference - (scorePercent / 100) * circumference;
+        
+        const progressCircle = document.querySelector('.score-progress');
+        setTimeout(() => {
+            progressCircle.style.strokeDashoffset = offset;
+            progressCircle.style.transition = 'stroke-dashoffset 1.5s ease-in-out';
+        }, 500);
+    });
+    
+    function shareResults() {
+        const score = "{{ score }}";
+        const total = "{{ total }}";
+        const quizTitle = "{{ quiz.title }}";
+        const percentage = Math.round((score / total) * 100);
+        
+        const shareText = `I just scored ${percentage}% (${score}/${total}) on "${quizTitle}" quiz! 🎯`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'Quiz Results',
+                text: shareText,
+                url: window.location.href
+            });
+        } else {
+            // Fallback to clipboard
+            navigator.clipboard.writeText(shareText + ' ' + window.location.href).then(() => {
+                alert('Results copied to clipboard!');
+            });
+        }
+    }
+</script>
+{% endblock %}

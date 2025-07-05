@@ -1,0 +1,520 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" sizes="16x16">
+    
+    <title>QuizHub</title>
+    <meta name="description" content="Create quizzes, play games, and earn money with our multi-vendor quiz platform">
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --success-color: #4bb543;
+            --warning-color: #fca311;
+            --danger-color: #e63946;
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --header-height: 60px;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        .sidebar-collapsed .sidebar-brand,
+        .sidebar-collapsed .nav-link span,
+        .sidebar-collapsed .sidebar-footer .nav-link span {
+            display: none;
+        }
+        
+        .sidebar-collapsed .nav-link {
+            justify-content: center;
+        }
+        
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-brand i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .sidebar-content {
+            height: calc(100vh - var(--header-height));
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+        }
+        
+        .sidebar-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 0;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+            margin-right: 12px;
+            min-width: 24px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .nav-link:hover i, .nav-link.active i {
+            color: var(--accent-color);
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+        
+        .main-content-expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
+        .header {
+            height: var(--header-height);
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .header .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        
+        .search-bar {
+            position: relative;
+            flex-grow: 1;
+            max-width: 500px;
+        }
+        
+        .search-bar input {
+            padding-left: 40px;
+            border-radius: 50px;
+            border: 1px solid #ddd;
+            height: 40px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .wallet-balance {
+            background-color: var(--light-color);
+            border-radius: 50px;
+            padding: 5px 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .wallet-balance .badge {
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content-area {
+            padding: 20px;
+            background-color: #f5f7fa;
+            min-height: calc(100vh - var(--header-height));
+        }
+        .submenu {
+            display: none;
+            padding-left: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.open > .submenu {
+            display: block;
+        }
+
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content-expanded {
+                margin-left: 0;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+        }
+        
+        /* Animation for sidebar items */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .sidebar-nav .nav-item {
+            animation: fadeIn 0.3s ease forwards;
+            opacity: 0;
+        }
+        
+        .sidebar-nav .nav-item:nth-child(1) { animation-delay: 0.1s; }
+        .sidebar-nav .nav-item:nth-child(2) { animation-delay: 0.15s; }
+        .sidebar-nav .nav-item:nth-child(3) { animation-delay: 0.2s; }
+        .sidebar-nav .nav-item:nth-child(4) { animation-delay: 0.25s; }
+        .sidebar-nav .nav-item:nth-child(5) { animation-delay: 0.3s; }
+        .sidebar-nav .nav-item:nth-child(6) { animation-delay: 0.35s; }
+        .sidebar-nav .nav-item:nth-child(7) { animation-delay: 0.4s; }
+        .sidebar-nav .nav-item:nth-child(8) { animation-delay: 0.45s; }
+        .sidebar-nav .nav-item:nth-child(9) { animation-delay: 0.5s; }
+        .sidebar-nav .nav-item:nth-child(10) { animation-delay: 0.55s; }
+        .sidebar-nav .nav-item:nth-child(11) { animation-delay: 0.6s; }
+        .sidebar-nav .nav-item:nth-child(12) { animation-delay: 0.65s; }
+        .sidebar-nav .nav-item:nth-child(13) { animation-delay: 0.7s; }
+        .sidebar-nav .nav-item:nth-child(14) { animation-delay: 0.75s; }
+        .sidebar-nav .nav-item:nth-child(15) { animation-delay: 0.8s; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-journal-bookmark-fill"></i>
+            <span>QuizHub</span>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-nav nav flex-column">
+                <li class="nav-item">
+                    <a href="{% url 'users:dashboard' %}" class="nav-link active">
+                        <i class="bi bi-house-door"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'quizzes:quiz_list' %}" class="nav-link">
+                        <i class="bi bi-lightbulb"></i>
+                        <span>Quiz</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-trophy"></i>
+                        <span>Today's Challenge</span>
+                    </a>
+                </li>
+                <!-- Categories with Submenu -->
+                <!-- <li class="nav-item has-submenu">
+                    <a href="#" class="nav-link submenu-toggle">
+                        <i class="bi bi-book"></i>
+                        <span>Quiz</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="submenu nav flex-column">
+                        <li><a href="#" class="nav-link">Create Quiz</a></li>
+                        <li><a href="#" class="nav-link">Quiz Detail</a></li>
+                    </ul>
+                </li> -->
+                
+                <!-- <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-sword"></i>
+                        <span>Quiz Battle</span>
+                    </a>
+                </li> -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-newspaper"></i>
+                        <span>News & Updates</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'quizzes:quiz_list' %}" class="nav-link">
+                        <i class="bi bi-compass"></i>
+                        <span>Explore Quizzes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-award"></i>
+                        <span>Quiz Tournament</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-star"></i>
+                        <span>Leaderboard</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-chat-square-text"></i>
+                        <span>Quiz Discussions</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-people"></i>
+                        <span>Affiliate Page</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-currency-dollar"></i>
+                        <span>Pricing Plan</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-life-preserver"></i>
+                        <span>Support</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="{% url 'users:logout' %}" class="nav-link">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="header">
+            <button class="toggle-btn" id="toggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="search" class="form-control" placeholder="Search quizzes, categories, creators...">
+            </div>
+            
+            <div class="user-actions">
+                {% if user.is_authenticated %}
+                    <div class="wallet-balance">
+                        <span>${{ user.wallet_balance|default:"0.00" }}</span>
+                        <span class="badge"><i class="bi bi-coin"></i></span>
+                    </div>
+                    
+                    <div class="user-avatar" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ user.full_name }}">
+                        {{ user.full_name|slice:":2" }}
+                    </div>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="btn btn-sm btn-outline-primary">Login</a>
+                {% endif %}
+            </div>
+        </header>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Toggle sidebar
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        
+        toggleSidebar.addEventListener('click', function() {
+            if (window.innerWidth > 992) {
+                // Desktop - toggle collapsed state
+                sidebar.classList.toggle('sidebar-collapsed');
+                mainContent.classList.toggle('main-content-expanded');
+            } else {
+                // Mobile - toggle visibility
+                sidebar.classList.toggle('show');
+            }
+        });
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 992 && !sidebar.contains(event.target) && 
+                event.target !== toggleSidebar && !toggleSidebar.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+        
+        // Add animation to sidebar items when sidebar is shown
+        sidebar.addEventListener('shown.bs.collapse', function() {
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+            navItems.forEach((item, index) => {
+                item.style.animationDelay = `${0.1 + index * 0.05}s`;
+                item.style.opacity = 1;
+                item.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('click', function(event) {
+            const openMenus = document.querySelectorAll('.nav-item.open');
+
+            openMenus.forEach(function(menu) {
+                const submenu = menu.querySelector('.submenu');
+                const toggle = menu.querySelector('.submenu-toggle');
+
+                if (!submenu.contains(event.target) && !toggle.contains(event.target)) {
+                    menu.classList.remove('open');
+                }
+            });
+        });
+        // Toggle submenu
+        document.querySelectorAll('.submenu-toggle').forEach(function(toggle) {
+            toggle.addEventListener('click', function(event) {
+                event.preventDefault();
+                const parentItem = this.parentElement;
+                parentItem.classList.toggle('open');
+            });
+        });
+    </script>
+
+</body>
+</html>

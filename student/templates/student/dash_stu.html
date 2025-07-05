@@ -1,0 +1,13 @@
+﻿{% extends dashboard_template %}
+
+{% block content %}
+    <h2>Welcome, {{ user.full_name }}!</h2>
+    <p>Role: {{ user.role }}</p>
+    {% if user.role == 'student' %}
+        <p>Roll No: {{ user.student_roll_no }}</p>
+        <p>Academic Year: {{ user.academic_year }}</p>
+    {% elif user.role == 'teacher' %}
+        <p>Email: {{ user.teacher_email }}</p>
+    {% endif %}
+    <!-- Add more dashboard content, e.g., recent quizzes, scores, etc. -->
+{% endblock %}

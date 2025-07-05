@@ -1,0 +1,13 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Extracted Text</h2>
+    <p><strong>File:</strong> {{ file.file.name }}</p>
+    <p><strong>Uploaded by:</strong> {{ file.user.username }}</p>
+    <p><strong>Uploaded on:</strong> {{ file.uploaded_at }}</p>
+    <h3>Extracted Content:</h3>
+    <pre>{{ extracted_text }}</pre>
+    <a href="{% url 'textprocessor:upload' %}" class="btn btn-secondary">Upload Another File</a>
+</div>
+{% endblock %}

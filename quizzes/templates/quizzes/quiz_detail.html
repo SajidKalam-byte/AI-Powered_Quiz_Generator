@@ -1,0 +1,207 @@
+{% extends dashboard_template %}
+{% load custom_filters %}  
+{% block content %}
+<div class="container-fluid">
+    <div class="card-clean p-4 mb-4 fade-in">
+        <div class="row align-items-start">
+            <div class="col-lg-8">
+                <h1 class="h2 fw-bold text-primary mb-3">{{ quiz.title }}</h1>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge badge-primary">
+                        <i class="bi bi-tag-fill me-1"></i>{{ quiz.category.name }}
+                    </span>
+                    <span class="badge badge-clean">
+                        <i class="bi bi-speedometer2 me-1"></i>{{ quiz.get_difficulty_display }}
+                    </span>
+                    <span class="badge badge-clean">
+                        <i class="bi bi-question-circle-fill me-1"></i>{{ quiz.questions.count }} Questions
+                    </span>
+                </div>
+                <p class="text-muted mb-3">
+                    <i class="bi bi-calendar me-1"></i>Created on {{ quiz.created_at|date:"F d, Y" }}
+                </p>
+            </div>
+            
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex align-items-center justify-content-lg-end gap-2 mb-3">
+                    <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
+                        {{ quiz.created_by.username|slice:":2"|upper }}
+                    </div>
+                    <div class="text-start">
+                        <small class="text-muted d-block">Created by</small>
+                        <strong>{{ quiz.created_by.username }}</strong>
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    {% if quiz.created_by == user %}
+                    <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Add Question
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-primary">
+                        <i class="bi bi-play-fill me-1"></i>Take Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h4 fw-bold text-primary mb-0">Questions</h3>
+        <span class="text-muted">{{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }}</span>
+    </div>
+    
+    {% if quiz.questions.exists %}
+    <div class="row g-4">
+        {% for question in quiz.questions.all %}
+        <div class="col-12">
+            <div class="card-clean p-4 slide-in" style="animation-delay: {{ forloop.counter0|add:1|mul:0.1 }}s">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge badge-primary fs-6">{{ forloop.counter }}</span>
+                        <h5 class="mb-0">Question {{ forloop.counter }}</h5>
+                    </div>
+                    {% if quiz.created_by == user %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>{{ question.correct_option }}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <p class="lead mb-4">{{ question.text }}</p>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="option-card {% if quiz.created_by == user and question.correct_option == 'A' %}correct-option{% endif %}">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">{{ question.option_a }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="option-card {% if quiz.created_by == user and question.correct_option == 'B' %}correct-option{% endif %}">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">{{ question.option_b }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="option-card {% if quiz.created_by == user and question.correct_option == 'C' %}correct-option{% endif %}">
+                            <span class="option-letter">C</span>
+                            <span class="option-text">{{ question.option_c }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="option-card {% if quiz.created_by == user and question.correct_option == 'D' %}correct-option{% endif %}">
+                            <span class="option-letter">D</span>
+                            <span class="option-text">{{ question.option_d }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if quiz.created_by == user and question.explanation %}
+                <div class="explanation-card">
+                    <h6 class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-lightbulb-fill text-warning"></i>
+                        <span>Explanation</span>
+                    </h6>
+                    <p class="mb-0">{{ question.explanation }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="card-clean p-5">
+            <div class="mb-4">
+                <i class="bi bi-question-lg text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h3 class="h4 mb-3">No Questions Yet</h3>
+            <p class="text-muted mb-4">This quiz doesn't have any questions yet.</p>
+            {% if quiz.created_by == user %}
+            <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Add First Question
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .option-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .option-card:hover {
+        background: var(--hover-bg);
+        transform: translateY(-2px);
+        box-shadow: var(--card-shadow-hover);
+    }
+    
+    .correct-option {
+        background: var(--option-correct);
+        border-color: var(--success-color);
+        border-width: 2px;
+    }
+    
+    .option-letter {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    
+    .correct-option .option-letter {
+        background: var(--success-color);
+    }
+    
+    .option-text {
+        flex: 1;
+        font-weight: 500;
+    }
+    
+    .explanation-card {
+        background: var(--quiz-accent);
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    [data-bs-theme="dark"] .explanation-card {
+        background: var(--quiz-accent);
+        border-color: var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+        .row.align-items-start {
+            flex-direction: column;
+        }
+        
+        .col-lg-4.text-lg-end {
+            text-align: left !important;
+            margin-top: 1rem;
+        }
+        
+        .d-flex.justify-content-lg-end {
+            justify-content: flex-start !important;
+        }
+    }
+</style>
+{% endblock %}

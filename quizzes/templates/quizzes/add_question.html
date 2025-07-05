@@ -1,0 +1,307 @@
+{% extends dashboard_template %}
+
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="card-glass p-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5 fw-bold gradient-text">Add Question to <span class="text-white">{{ quiz.title }}</span></h1>
+            <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-glass">
+                <i class="bi bi-arrow-left me-1"></i> Back to Quiz
+            </a>
+        </div>
+
+        <form method="post" class="question-form">
+            {% csrf_token %}
+            
+            <!-- Question Text -->
+            <div class="form-group floating-label mb-4">
+                {{ form.text.label_tag }}
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-question-lg"></i>
+                    </span>
+                    {{ form.text }}
+                </div>
+                {% if form.text.errors %}
+                <div class="form-error">{{ form.text.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- Options Grid -->
+            <div class="options-grid mb-4">
+                <div class="option-group">
+                    <div class="form-group floating-label">
+                        <label for="{{ form.option_a.id_for_label }}">Option A</label>
+                        <div class="input-group">
+                            <span class="input-group-text option-letter">A</span>
+                            {{ form.option_a }}
+                        </div>
+                        {% if form.option_a.errors %}
+                        <div class="form-error">{{ form.option_a.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div class="form-group floating-label">
+                        <label for="{{ form.option_b.id_for_label }}">Option B</label>
+                        <div class="input-group">
+                            <span class="input-group-text option-letter">B</span>
+                            {{ form.option_b }}
+                        </div>
+                        {% if form.option_b.errors %}
+                        <div class="form-error">{{ form.option_b.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div class="form-group floating-label">
+                        <label for="{{ form.option_c.id_for_label }}">Option C</label>
+                        <div class="input-group">
+                            <span class="input-group-text option-letter">C</span>
+                            {{ form.option_c }}
+                        </div>
+                        {% if form.option_c.errors %}
+                        <div class="form-error">{{ form.option_c.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div class="form-group floating-label">
+                        <label for="{{ form.option_d.id_for_label }}">Option D</label>
+                        <div class="input-group">
+                            <span class="input-group-text option-letter">D</span>
+                            {{ form.option_d }}
+                        </div>
+                        {% if form.option_d.errors %}
+                        <div class="form-error">{{ form.option_d.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Correct Answer and Order -->
+            <div class="form-row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group floating-label">
+                        {{ form.correct_option.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-check-circle"></i>
+                            </span>
+                            {{ form.correct_option }}
+                        </div>
+                        {% if form.correct_option.errors %}
+                        <div class="form-error">{{ form.correct_option.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group floating-label">
+                        {{ form.order.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-list-ol"></i>
+                            </span>
+                            {{ form.order }}
+                        </div>
+                        {% if form.order.errors %}
+                        <div class="form-error">{{ form.order.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Explanation -->
+            <div class="form-group floating-label mb-4">
+                {{ form.explanation.label_tag }}
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lightbulb"></i>
+                    </span>
+                    {{ form.explanation }}
+                </div>
+                {% if form.explanation.errors %}
+                <div class="form-error">{{ form.explanation.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Optional explanation that will be shown after answering</small>
+            </div>
+            
+            <div class="form-actions mt-5">
+                <button type="submit" class="btn btn-primary btn-glow px-5">
+                    <i class="bi bi-save me-2"></i> Add Question
+                </button>
+                <button type="reset" class="btn btn-glass ms-3">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i> Reset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Question Form Specific Styles */
+    .question-form {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .option-group {
+        position: relative;
+    }
+    
+    .option-letter {
+        width: 36px;
+        height: 36px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 8px 0 0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .form-control, .form-select, textarea {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+    }
+    
+    textarea.form-control {
+        min-height: 120px;
+        border-radius: 8px;
+    }
+    
+    .form-control:focus, .form-select:focus, textarea:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        color: white;
+    }
+    
+    .input-group-text {
+        background: rgba(67, 97, 238, 0.2);
+        border: none;
+        color: var(--primary-color);
+    }
+    
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+    
+    .form-row > .col-md-6 {
+        flex: 1 1 45%;
+        min-width: 300px;
+    }
+    
+    .form-error {
+        color: var(--danger-color);
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Highlight correct answer option */
+    select option[value="A"] { color: #4bb543; font-weight: bold; }
+    select option[value="B"] { color: #4bb543; font-weight: bold; }
+    select option[value="C"] { color: #4bb543; font-weight: bold; }
+    select option[value="D"] { color: #4bb543; font-weight: bold; }
+    
+    @media (max-width: 768px) {
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row > .col-md-6 {
+            flex: 1 1 100%;
+            min-width: 100%;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add floating label effect
+        const formInputs = document.querySelectorAll('.form-control, .form-select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.parentElement.classList.remove('focused');
+                }
+            });
+            
+            // Initialize focused state for pre-filled values
+            if (input.value) {
+                input.parentElement.parentElement.classList.add('focused');
+            }
+        });
+        
+        // Highlight selected option in correct answer dropdown
+        const correctOptionSelect = document.getElementById('{{ form.correct_option.id_for_label }}');
+        correctOptionSelect.addEventListener('change', function() {
+            const options = this.querySelectorAll('option');
+            options.forEach(opt => {
+                opt.style.backgroundColor = 'transparent';
+            });
+            
+            if (this.value) {
+                const selectedOption = this.querySelector(`option[value="${this.value}"]`);
+                selectedOption.style.backgroundColor = 'rgba(75, 181, 67, 0.1)';
+            }
+        });
+        
+        // Trigger change event to highlight initial selection
+        if (correctOptionSelect.value) {
+            correctOptionSelect.dispatchEvent(new Event('change'));
+        }
+        
+        // Add animation to form elements
+        const formGroups = document.querySelectorAll('.form-group');
+        formGroups.forEach((group, index) => {
+            group.style.opacity = '0';
+            group.style.transform = 'translateY(20px)';
+            group.style.transition = 'all 0.5s ease ' + (index * 0.1) + 's';
+            
+            setTimeout(() => {
+                group.style.opacity = '1';
+                group.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}
