@@ -1,0 +1,1239 @@
+{% extends "base/student_base.html" %}
+
+{% block extra_css %}
+<style>
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    :root {
+        --profile-primary: #6366f1;
+        --profile-secondary: #8b5cf6;
+        --profile-accent: #06b6d4;
+        --profile-success: #10b981;
+        --profile-warning: #f59e0b;
+        --profile-danger: #ef4444;
+        --profile-dark: #1f2937;
+        --profile-light: #f8fafc;
+        --profile-gray-50: #f9fafb;
+        --profile-gray-100: #f3f4f6;
+        --profile-gray-200: #e5e7eb;
+        --profile-gray-300: #d1d5db;
+        --profile-gray-400: #9ca3af;
+        --profile-gray-500: #6b7280;
+        --profile-gray-600: #4b5563;
+        --profile-gray-700: #374151;
+        --profile-gray-800: #1f2937;
+        --profile-gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, var(--profile-gray-50) 0%, #ffffff 100%);
+        color: var(--profile-gray-800);
+        line-height: 1.6;
+    }
+
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Profile Header */
+    .profile-header {
+        background: linear-gradient(135deg, var(--profile-primary) 0%, var(--profile-secondary) 100%);
+        border-radius: 24px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        pointer-events: none;
+    }
+
+    .profile-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+        backdrop-filter: blur(10px);
+        border: 3px solid rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(255,255,255,0.3);
+    }
+
+    .profile-avatar::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+        opacity: 0;
+    }
+
+    .profile-avatar:hover::after {
+        animation: shimmer 0.6s ease-in-out;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+    }
+
+    .profile-info h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0 0 0.5rem 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .profile-role {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        margin-bottom: 1rem;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
+    }
+
+    /* Cards */
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--profile-gray-100);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--profile-primary), var(--profile-accent));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .profile-card:hover::before {
+        opacity: 1;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--profile-gray-100);
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--profile-gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title i {
+        color: var(--profile-primary);
+        font-size: 1.25rem;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        padding: 1.5rem;
+        background: var(--profile-gray-50);
+        border-radius: 16px;
+        border: 1px solid var(--profile-gray-200);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .info-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--profile-primary), var(--profile-accent));
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: white;
+        border-color: var(--profile-primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .info-item:hover::before {
+        transform: scaleY(1);
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--profile-gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--profile-gray-900);
+        word-break: break-word;
+    }
+
+    /* Buttons */
+    .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, var(--profile-primary), var(--profile-secondary));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .edit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .edit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .edit-btn:hover::before {
+        left: 100%;
+    }
+
+    /* Tables */
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--profile-gray-200);
+    }
+
+    .attempts-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .attempts-table th {
+        background: var(--profile-gray-50);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--profile-gray-700);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--profile-gray-200);
+    }
+
+    .attempts-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--profile-gray-100);
+        color: var(--profile-gray-700);
+        font-weight: 500;
+    }
+
+    .attempts-table tr {
+        transition: all 0.2s ease;
+    }
+
+    .attempts-table tbody tr:hover {
+        background: var(--profile-gray-50);
+        transform: scale(1.01);
+    }
+
+    .attempts-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Score Badges */
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .score-badge::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .score-badge:hover::before {
+        left: 100%;
+    }
+
+    .score-high {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: var(--profile-success);
+        border: 1px solid #86efac;
+    }
+
+    .score-medium {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: var(--profile-warning);
+        border: 1px solid #fbbf24;
+    }
+
+    .score-low {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: var(--profile-danger);
+        border: 1px solid #f87171;
+    }
+
+    .score-badge:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Status Badges */
+    .status-published {
+        color: var(--profile-success);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-draft {
+        color: var(--profile-warning);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-published::before,
+    .status-draft::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--profile-gray-500);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--profile-gray-300);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--profile-gray-600);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .profile-header {
+            padding: 2rem 1.5rem;
+        }
+
+        .profile-header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .profile-info h1 {
+            font-size: 2rem;
+        }
+
+        .profile-stats {
+            justify-content: center;
+        }
+
+        .profile-card {
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .attempts-table {
+            min-width: 600px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+        }
+
+        .profile-info h1 {
+            font-size: 1.75rem;
+        }
+
+        .profile-stats {
+            gap: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Loading Animation */
+    .loading {
+        opacity: 0;
+        animation: fadeIn 0.5s ease-in-out 0.2s forwards;
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Interactive Elements */
+    .interactive-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .interactive-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    /* Tooltip Styles */
+    .tooltip-custom {
+        position: relative;
+        cursor: help;
+    }
+
+    .tooltip-custom::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--profile-gray-900);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+    }
+
+    .tooltip-custom:hover::after {
+        opacity: 1;
+    }
+
+    /* Bootstrap Grid Fallback */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.75rem;
+        margin-left: -0.75rem;
+    }
+
+    .row.g-3 > * {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .col-md-3 {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+
+    .col-sm-6 {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+
+    @media (max-width: 767.98px) {
+        .col-sm-6 {
+            width: 50%;
+        }
+        .col-md-3 {
+            width: 50%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .col-sm-6, .col-md-3 {
+            width: 100%;
+        }
+    }
+
+    /* Bootstrap Utility Classes */
+    .text-center {
+        text-align: center !important;
+    }
+
+    .me-2 {
+        margin-right: 0.5rem !important;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
+    .btn {
+        display: inline-block;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        text-align: center;
+        text-decoration: none;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.375rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: var(--profile-primary);
+        border-color: var(--profile-primary);
+    }
+
+    .btn-outline-primary {
+        color: var(--profile-primary);
+        border-color: var(--profile-primary);
+    }
+
+    .btn-outline-secondary {
+        color: var(--profile-gray-600);
+        border-color: var(--profile-gray-300);
+    }
+
+    .btn-outline-danger {
+        color: var(--profile-danger);
+        border-color: var(--profile-danger);
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-group {
+        position: relative;
+        display: inline-flex;
+        vertical-align: middle;
+    }
+
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.375rem;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    .text-dark {
+        color: #212529 !important;
+    }
+
+    .bg-info {
+        background-color: #0dcaf0 !important;
+    }
+
+    .bg-success {
+        background-color: #198754 !important;
+    }
+
+    .bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .fw-bold {
+        font-weight: 700 !important;
+    }
+
+    .text-decoration-none {
+        text-decoration: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header Section -->
+    <div class="profile-header loading">
+        <div class="profile-header-content">
+            <div class="profile-avatar" data-tooltip="Click to change avatar">
+                {{ request.user.full_name|slice:":2"|upper }}
+            </div>
+            <div class="profile-info">
+                <h1>{{ request.user.full_name|default:"User Name" }}</h1>
+                <div class="profile-role">
+                    <i class="bi bi-person-badge"></i>
+                    {{ request.user.get_role_display|default:"Student" }}
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ created_quizzes_count|default:"0" }}</span>
+                        <span class="stat-label">Quizzes Created</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ attempted_quizzes_count|default:"0" }}</span>
+                        <span class="stat-label">Quizzes Attempted</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ average_score|default:"0" }}%</span>
+                        <span class="stat-label">Average Score</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Information Card -->
+    <div class="profile-card loading">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-person-circle"></i>
+                Basic Information
+            </h2>
+            <a href="#" class="edit-btn">
+                <i class="bi bi-pencil-square"></i>
+                Edit Profile
+            </a>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-person"></i>
+                    Username
+                </div>
+                <div class="info-value">{{ request.user.username|default:"Not provided" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-envelope"></i>
+                    Email Address
+                </div>
+                <div class="info-value">{{ request.user.email|default:"Not provided" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-shield-check"></i>
+                    Account Type
+                </div>
+                <div class="info-value">{{ request.user.get_role_display|default:"Student" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-calendar-check"></i>
+                    Member Since
+                </div>
+                <div class="info-value">{{ request.user.date_joined|date:"F j, Y"|default:"Recently joined" }}</div>
+            </div>
+            
+            {% if request.user.role == 'student' %}
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-hash"></i>
+                    Roll Number
+                </div>
+                <div class="info-value">{{ request.user.student_roll_no|default:"Not assigned" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-mortarboard"></i>
+                    Academic Year
+                </div>
+                <div class="info-value">{{ request.user.academic_year|default:"Not specified" }}</div>
+            </div>
+            {% endif %}
+            
+            {% if request.user.role == 'teacher' %}
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-envelope-at"></i>
+                    Teacher Email
+                </div>
+                <div class="info-value">{{ request.user.teacher_email|default:"Not provided" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-building"></i>
+                    Department
+                </div>
+                <div class="info-value">{{ request.user.department|default:"Not specified" }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quiz Activity Section -->
+    <div class="profile-card loading">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-graph-up"></i>
+                Quiz Activity & Performance
+            </h2>
+        </div>
+        
+        <div class="info-grid" style="margin-bottom: 2rem;">
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-plus-circle"></i>
+                    Quizzes Created
+                </div>
+                <div class="info-value">{{ created_quizzes_count|default:"0" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-play-circle"></i>
+                    Quizzes Attempted
+                </div>
+                <div class="info-value">{{ attempted_quizzes_count|default:"0" }}</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-trophy"></i>
+                    Average Score
+                </div>
+                <div class="info-value">{{ average_score|default:"N/A" }}%</div>
+            </div>
+            
+            <div class="info-item interactive-card">
+                <div class="info-label">
+                    <i class="bi bi-clock-history"></i>
+                    Last Activity
+                </div>
+                <div class="info-value">{{ last_attempt_date|default:"No attempts yet" }}</div>
+            </div>
+        </div>
+        
+        {% if quiz_attempts %}
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--profile-gray-900); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-list-check" style="color: var(--profile-primary);"></i>
+            Recent Quiz Attempts
+        </h3>
+        
+        <div class="table-container">
+            <table class="attempts-table">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-journal-text me-2"></i>Quiz Title</th>
+                        <th><i class="bi bi-tag me-2"></i>Category</th>
+                        <th><i class="bi bi-speedometer2 me-2"></i>Difficulty</th>
+                        <th><i class="bi bi-award me-2"></i>Score</th>
+                        <th><i class="bi bi-calendar3 me-2"></i>Date</th>
+                        <th><i class="bi bi-three-dots me-2"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in quiz_attempts %}
+                    <tr>
+                        <td>
+                            <strong>{{ attempt.quiz.title }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ attempt.quiz.category.name }}</span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if attempt.quiz.difficulty == 'easy' %}bg-success
+                                {% elif attempt.quiz.difficulty == 'medium' %}bg-warning
+                                {% else %}bg-danger
+                                {% endif %}">
+                                {{ attempt.quiz.get_difficulty_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="score-badge tooltip-custom
+                                {% if attempt.score >= 80 %}score-high
+                                {% elif attempt.score >= 50 %}score-medium
+                                {% else %}score-low
+                                {% endif %}" 
+                                data-tooltip="Click for details">
+                                {{ attempt.score }}%
+                            </span>
+                        </td>
+                        <td>{{ attempt.completed_at|date:"M j, Y" }}</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-clipboard-x"></i>
+            <h3>No Quiz Attempts Yet</h3>
+            <p>Start taking quizzes to see your performance history here.</p>
+            <a href="#" class="btn btn-primary mt-3">
+                <i class="bi bi-play-circle me-2"></i>
+                Browse Quizzes
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Created Quizzes Section (for teachers/admins) -->
+    {% if request.user.role == 'teacher' or request.user.role == 'admin' %}
+    <div class="profile-card loading">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-journal-plus"></i>
+                Created Quizzes
+            </h2>
+            <a href="#" class="edit-btn">
+                <i class="bi bi-plus-circle"></i>
+                Create New Quiz
+            </a>
+        </div>
+        
+        {% if created_quizzes %}
+        <div class="table-container">
+            <table class="attempts-table">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-journal-text me-2"></i>Title</th>
+                        <th><i class="bi bi-tag me-2"></i>Category</th>
+                        <th><i class="bi bi-question-circle me-2"></i>Questions</th>
+                        <th><i class="bi bi-eye me-2"></i>Views</th>
+                        <th><i class="bi bi-check-circle me-2"></i>Status</th>
+                        <th><i class="bi bi-calendar3 me-2"></i>Created</th>
+                        <th><i class="bi bi-three-dots me-2"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quiz in created_quizzes %}
+                    <tr>
+                        <td>
+                            <a href="#" class="text-decoration-none fw-bold">{{ quiz.title }}</a>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ quiz.category.name }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ quiz.questions.count }} questions</span>
+                        </td>
+                        <td>{{ quiz.view_count|default:"0" }}</td>
+                        <td>
+                            {% if quiz.is_published %}
+                            <span class="status-published">
+                                <i class="bi bi-check-circle"></i>
+                                Published
+                            </span>
+                            {% else %}
+                            <span class="status-draft">
+                                <i class="bi bi-clock"></i>
+                                Draft
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ quiz.created_at|date:"M j, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-plus"></i>
+            <h3>No Quizzes Created Yet</h3>
+            <p>Start creating engaging quizzes for your students.</p>
+            <a href="#" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>
+                Create Your First Quiz
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Achievement Section -->
+    <div class="profile-card loading">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-trophy"></i>
+                Achievements & Badges
+            </h2>
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-md-3 col-sm-6">
+                <div class="info-item interactive-card text-center">
+                    <i class="bi bi-award" style="font-size: 2rem; color: var(--profile-warning); margin-bottom: 0.5rem;"></i>
+                    <div class="info-label">First Quiz</div>
+                    <div class="info-value">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="info-item interactive-card text-center">
+                    <i class="bi bi-lightning" style="font-size: 2rem; color: var(--profile-primary); margin-bottom: 0.5rem;"></i>
+                    <div class="info-label">Speed Demon</div>
+                    <div class="info-value">Earned</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="info-item interactive-card text-center">
+                    <i class="bi bi-star" style="font-size: 2rem; color: var(--profile-success); margin-bottom: 0.5rem;"></i>
+                    <div class="info-label">Perfect Score</div>
+                    <div class="info-value">3 Times</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="info-item interactive-card text-center">
+                    <i class="bi bi-fire" style="font-size: 2rem; color: var(--profile-danger); margin-bottom: 0.5rem;"></i>
+                    <div class="info-label">Streak Master</div>
+                    <div class="info-value">7 Days</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading animation
+    const loadingElements = document.querySelectorAll('.loading');
+    loadingElements.forEach((element, index) => {
+        setTimeout(() => {
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+
+    // Interactive score badges
+    const scoreBadges = document.querySelectorAll('.score-badge');
+    scoreBadges.forEach(badge => {
+        badge.addEventListener('click', function() {
+            // Add ripple effect
+            const ripple = document.createElement('span');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255,255,255,0.6)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = '50%';
+            ripple.style.top = '50%';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            ripple.style.marginLeft = '-10px';
+            ripple.style.marginTop = '-10px';
+            
+            this.style.position = 'relative';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+            
+            // Show detailed results (placeholder)
+            console.log('Showing detailed results for quiz attempt');
+        });
+    });
+
+    // Interactive cards hover effect
+    const interactiveCards = document.querySelectorAll('.interactive-card');
+    interactiveCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+
+    // Profile avatar click effect
+    const profileAvatar = document.querySelector('.profile-avatar');
+    if (profileAvatar) {
+        profileAvatar.addEventListener('click', function() {
+            // Add rotation animation
+            this.style.transform = 'scale(1.1) rotate(360deg)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            }, 600);
+            
+            // Placeholder for avatar change functionality
+            console.log('Avatar change functionality would go here');
+        });
+    }
+
+    // Smooth scroll for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
+    // Add intersection observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all cards for scroll animations
+    document.querySelectorAll('.profile-card').forEach(card => {
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

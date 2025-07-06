@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.db.models import Avg, Count, Max
 from .models import CustomUser
 from .decorators import role_required
+from quizzes.models import Quiz, UserQuizAttempt
 
 
 def student_register(request):
@@ -131,8 +133,9 @@ def dashboard(request):
     """
     user = request.user
     template_map = {
-        'student': 'base/student_base.html',
-        'teacher': 'base/dashboard_base.html',
+        # 'student': 'base/student_base.html',
+        'student': 'base/index.html',
+        'teacher': 'base/indexteach.html',
         'admin': 'dashboard/admin_dash.html'
     }
     template = template_map.get(user.role)
@@ -142,3 +145,51 @@ def dashboard(request):
 
     messages.success(request, f"You are logged in as a {user.role}.")
     return render(request, template, {'dashboard_template': template})
+
+@login_required
+def profile_view(request):
+    user = request.user
+    
+    # Calculate basic quiz statistics
+    created_quizzes_count = Quiz.objects.filter(created_by=user).count()
+    quiz_attempts = UserQuizAttempt.objects.filter(user=user).select_related('quiz', 'quiz__category').order_by('-completed_at')[:10]
+    attempted_quizzes_count = UserQuizAttempt.objects.filter(user=user).values('quiz').distinct().count()
+    
+    # Calculate average score (excluding quizzes with no score)
+    average_score = UserQuizAttempt.objects.filter(user=user).aggregate(
+        avg_score=Avg('score')
+    )['avg_score']
+    
+    # Get last attempt date if available
+    last_attempt = UserQuizAttempt.objects.filter(user=user).aggregate(
+        last_attempt=Max('completed_at')
+    )
+    last_attempt_date = last_attempt['last_attempt'].strftime("%B %d, %Y") if last_attempt['last_attempt'] else None
+    
+    # Get created quizzes for teachers/admins
+    created_quizzes = []
+    if user.role in ['teacher', 'admin']:
+        created_quizzes = Quiz.objects.filter(created_by=user).select_related('category').annotate(
+            question_count=Count('questions')
+        ).order_by('-created_at')[:10]
+    
+    context = {
+        'dashboard_template': get_dashboard_template(user),
+        'created_quizzes_count': created_quizzes_count,
+        'attempted_quizzes_count': attempted_quizzes_count,
+        'average_score': round(average_score, 1) if average_score else None,
+        'last_attempt_date': last_attempt_date,
+        'quiz_attempts': quiz_attempts,
+        'created_quizzes': created_quizzes,
+    }
+    
+    return render(request, 'base/profile.html', context)
+
+def get_dashboard_template(user):
+    """Helper function to determine the correct dashboard template based on user role"""
+    if user.role == 'student':
+        return 'student_dashboard.html'
+    elif user.role == 'teacher':
+        return 'teacher_dashboard.html'
+    else:
+        return 'admin_dashboard.html'

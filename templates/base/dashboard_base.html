@@ -455,6 +455,9 @@
         
         <!-- Content Area -->
         <div class="content-area">
+            {% block content1 %}
+
+            {% endblock %}
             {% block content %}
             {% endblock %}
         </div>
@@ -510,7 +513,7 @@
 
             openMenus.forEach(function(menu) {
                 const submenu = menu.querySelector('.submenu');
-                const toggle = menu.querySelector('.submenu-toggle');
+                const toggle = menu.querySelector('.submenu-toggle');   
 
                 if (!submenu.contains(event.target) && !toggle.contains(event.target)) {
                     menu.classList.remove('open');

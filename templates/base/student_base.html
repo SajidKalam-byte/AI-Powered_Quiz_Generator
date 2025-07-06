@@ -300,6 +300,9 @@
         .sidebar-nav .nav-item:nth-child(14) { animation-delay: 0.75s; }
         .sidebar-nav .nav-item:nth-child(15) { animation-delay: 0.8s; }
     </style>
+    
+    {% block extra_css %}
+    {% endblock %}
 </head>
 <body>
     <!-- Sidebar -->
@@ -433,9 +436,9 @@
                         <span class="badge"><i class="bi bi-coin"></i></span>
                     </div>
                     
-                    <div class="user-avatar" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ user.full_name }}">
+                    <a href="{% url 'users:profile' %}" class="user-avatar" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ user.full_name }}">
                         {{ user.full_name|slice:":2" }}
-                    </div>
+                    </a>
                 {% else %}
                     <a href="{% url 'users:login' %}" class="btn btn-sm btn-outline-primary">Login</a>
                 {% endif %}
@@ -444,6 +447,9 @@
         
         <!-- Content Area -->
         <div class="content-area">
+            {% block content1 %}
+            <!-- here dashboard content is displayed -->
+            {% endblock %}
             {% block content %}
             {% endblock %}
         </div>
@@ -515,6 +521,8 @@
             });
         });
     </script>
-
+    
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>
