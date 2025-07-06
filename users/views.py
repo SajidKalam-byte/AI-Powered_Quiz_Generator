@@ -130,12 +130,12 @@ def user_logout(request):
 @login_required
 def dashboard(request):
     """
-    Unified dashboard view that renders role-specific templates.
+    Unified dashboard view that renders role-specific dashboard templates.
     """
     user = request.user
     template_map = {
-        'student': 'base/student_base.html',
-        'teacher': 'base/dashboard_base.html',
+        'student': 'student/dashboard.html',
+        'teacher': 'staff/dashboard.html',
         'admin': 'admin/dash_admin.html'
     }
     template = template_map.get(user.role)
@@ -145,11 +145,10 @@ def dashboard(request):
 
     # Prepare dashboard context data
     context = {
-        'dashboard_template': get_dashboard_template(user),
         'current_date': timezone.now(),
     }
     
-    # Add student-specific context
+    # Add role-specific context
     if user.role == 'student':
         from textprocessor.models import UploadedFile
         from quizzes.models import Quiz
@@ -170,8 +169,29 @@ def dashboard(request):
             'quizzes_completed': 0,  # TODO: Implement quiz attempts tracking
             'average_score': 85,     # TODO: Calculate from quiz results
         })
+    
+    elif user.role == 'teacher':
+        from textprocessor.models import UploadedFile
+        from quizzes.models import Quiz
+        
+        # Get teacher's uploaded files
+        user_files = UploadedFile.objects.filter(user=user)
+        recent_files = user_files.order_by('-uploaded_at')[:5]
+        
+        # Calculate statistics
+        uploaded_files_count = user_files.count()
+        ai_generated_quizzes = Quiz.objects.filter(created_by=user).count()
+        
+        # Add to context
+        context.update({
+            'recent_files': recent_files,
+            'uploaded_files_count': uploaded_files_count,
+            'ai_generated_quizzes': ai_generated_quizzes,
+            'total_students': 0,  # TODO: Implement student tracking
+            'active_quizzes': ai_generated_quizzes,
+        })
 
-    messages.success(request, f"You are logged in as a {user.role}.")
+    messages.success(request, f"Welcome to your {user.role} dashboard!")
     return render(request, template, context)
 
 @login_required
@@ -214,10 +234,10 @@ def profile_view(request):
     return render(request, 'base/profile.html', context)
 
 def get_dashboard_template(user):
-    """Helper function to determine the correct dashboard template based on user role"""
+    """Helper function to determine the correct base template based on user role"""
     if user.role == 'student':
-        return 'student_dashboard.html'
+        return 'base/student_base.html'
     elif user.role == 'teacher':
-        return 'teacher_dashboard.html'
+        return 'base/dashboard_base.html'
     else:
-        return 'admin_dashboard.html'
+        return 'admin/dash_admin.html'

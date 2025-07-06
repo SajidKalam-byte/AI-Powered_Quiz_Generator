@@ -1,0 +1,331 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content1 %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <section class="hero-section position-relative overflow-hidden rounded-3 mb-4" style="background: linear-gradient(135deg, #4361ee, #3f37c9); color: white; padding: 60px 40px;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold mb-3">Welcome Back, {{ user.first_name|default:user.username }}! 📚</h1>
+                    <p class="lead mb-4 opacity-75">Create engaging AI-powered quizzes, manage your content, and track student progress.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Upload Content
+                        </a>
+                        <a href="{% url 'quizzes:create_quiz' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Create Quiz
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="hero-stats bg-white bg-opacity-10 rounded-3 p-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="mb-1">{{ uploaded_files_count|default:0 }}</h3>
+                            <small>Files Uploaded</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="mb-1">{{ ai_generated_quizzes|default:0 }}</h3>
+                            <small>Quizzes Created</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Decorative elements -->
+        <div class="position-absolute" style="bottom: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
+        <div class="position-absolute" style="top: -50px; left: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
+    </section>
+
+    <!-- Quick Actions Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 fw-bold mb-0">
+                <i class="bi bi-lightning text-primary me-2"></i>
+                Quick Actions
+            </h2>
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'textprocessor:upload' %}" class="text-decoration-none">
+                    <div class="card category-card h-100 border-0 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white;">
+                        <div class="card-body p-4 text-center">
+                            <i class="bi bi-file-earmark-arrow-up display-4 mb-3"></i>
+                            <h5 class="mb-2">Upload Content</h5>
+                            <p class="small mb-0 opacity-90">Upload syllabus, PDFs, documents for AI processing</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'textprocessor:generate_quiz' %}" class="text-decoration-none">
+                    <div class="card category-card h-100 border-0 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(45deg, #4ecdc4, #44a08d); color: white;">
+                        <div class="card-body p-4 text-center">
+                            <i class="bi bi-robot display-4 mb-3"></i>
+                            <h5 class="mb-2">AI Quiz Generator</h5>
+                            <p class="small mb-0 opacity-90">Create intelligent quizzes from your content</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'quizzes:create_quiz' %}" class="text-decoration-none">
+                    <div class="card category-card h-100 border-0 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(45deg, #a8edea, #fed6e3); color: #333;">
+                        <div class="card-body p-4 text-center">
+                            <i class="bi bi-plus-circle display-4 mb-3"></i>
+                            <h5 class="mb-2">Create Manual Quiz</h5>
+                            <p class="small mb-0">Build custom quizzes manually</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'textprocessor:file_list' %}" class="text-decoration-none">
+                    <div class="card category-card h-100 border-0 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(45deg, #667eea, #764ba2); color: white;">
+                        <div class="card-body p-4 text-center">
+                            <i class="bi bi-folder display-4 mb-3"></i>
+                            <h5 class="mb-2">Manage Files</h5>
+                            <p class="small mb-0 opacity-90">View and organize your uploaded content</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Uploads & Processing Status -->
+    <section class="mb-5 p-4 rounded-3" style="background-color: #f8f9fa;">
+        <h2 class="h3 fw-bold mb-4">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            Recent Activity
+        </h2>
+        <div class="row g-4">
+            {% if recent_files %}
+                {% for file in recent_files %}
+                <div class="col-lg-6">
+                    <div class="card quiz-card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    {% if file.file_type == 'pdf' %}
+                                        <i class="bi bi-file-earmark-pdf text-danger fa-2x"></i>
+                                    {% elif file.file_type == 'docx' %}
+                                        <i class="bi bi-file-earmark-word text-primary fa-2x"></i>
+                                    {% elif file.file_type == 'pptx' %}
+                                        <i class="bi bi-file-earmark-ppt text-warning fa-2x"></i>
+                                    {% else %}
+                                        <i class="bi bi-file-earmark-text text-secondary fa-2x"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ file.original_filename|truncatechars:40 }}</h6>
+                                    <div class="mb-2">
+                                        {% if file.status == 'completed' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Processed
+                                            </span>
+                                        {% elif file.status == 'processing' %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-hourglass-split me-1"></i>Processing
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i>Failed
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        Uploaded {{ file.uploaded_at|timesince }} ago
+                                        {% if file.processed_topics.topics %}
+                                            • {{ file.processed_topics.topics|length }} topics found
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    {% if file.status == 'completed' %}
+                                        <a href="{% url 'textprocessor:generate_quiz' %}?file={{ file.id }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-magic me-1"></i>Generate Quiz
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-arrow-up text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h4>No Content Uploaded Yet</h4>
+                        <p class="text-muted mb-4">Start by uploading your educational content to generate AI-powered quizzes</p>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus me-2"></i>Upload Your First Document
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- AI-Powered Features -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h3 fw-bold mb-1">
+                    <i class="bi bi-robot text-info me-2"></i>
+                    AI-Powered Features
+                </h2>
+                <p class="text-muted mb-0">Leverage artificial intelligence to enhance your teaching</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card featured-quiz-card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                    <div class="card-body p-4 text-center">
+                        <i class="bi bi-magic text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="mb-3">Smart Quiz Generation</h5>
+                        <p class="text-muted small mb-3">Upload any educational content and our AI will automatically extract topics and generate relevant quiz questions.</p>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right me-1"></i>Try Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card featured-quiz-card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2);">
+                    <div class="card-body p-4 text-center">
+                        <i class="bi bi-graph-up text-warning mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="mb-3">Topic Analysis</h5>
+                        <p class="text-muted small mb-3">AI analyzes your documents to identify key topics, concepts, and learning objectives automatically.</p>
+                        <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-warning">
+                            <i class="bi bi-arrow-right me-1"></i>View Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card featured-quiz-card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #e8f5e8, #c8e6c9);">
+                    <div class="card-body p-4 text-center">
+                        <i class="bi bi-bullseye text-success mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="mb-3">Adaptive Difficulty</h5>
+                        <p class="text-muted small mb-3">AI adjusts question difficulty and creates realistic distractors based on the content complexity.</p>
+                        <a href="{% url 'textprocessor:generate_quiz' %}" class="btn btn-outline-success">
+                            <i class="bi bi-arrow-right me-1"></i>Generate
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started Guide -->
+    <section class="mb-5 p-4 rounded-3" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="text-center mb-4">
+                    <h2 class="h3 fw-bold mb-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        How to Get Started
+                    </h2>
+                    <p class="mb-0 opacity-90">Follow these simple steps to create your first AI-powered quiz</p>
+                </div>
+                
+                <div class="row g-4 text-center">
+                    <div class="col-md-3">
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 h-100">
+                            <div class="bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold fs-4">1</span>
+                            </div>
+                            <h6 class="mb-2">Upload Content</h6>
+                            <small class="opacity-75">Upload your syllabus, lecture notes, or any educational document</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 h-100">
+                            <div class="bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold fs-4">2</span>
+                            </div>
+                            <h6 class="mb-2">AI Analysis</h6>
+                            <small class="opacity-75">Our AI analyzes the content and extracts key topics and concepts</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 h-100">
+                            <div class="bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold fs-4">3</span>
+                            </div>
+                            <h6 class="mb-2">Generate Quiz</h6>
+                            <small class="opacity-75">Choose topics, difficulty level, and let AI create your quiz</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-white bg-opacity-10 rounded-3 p-3 h-100">
+                            <div class="bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="fw-bold fs-4">4</span>
+                            </div>
+                            <h6 class="mb-2">Share & Track</h6>
+                            <small class="opacity-75">Share with students and track their progress and results</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .quiz-card {
+        transition: all 0.3s ease;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+    }
+    
+    .featured-quiz-card {
+        transition: all 0.3s ease;
+    }
+    
+    .featured-quiz-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
+    }
+</style>
+
+<script>
+    // Auto-refresh for processing files
+    document.addEventListener('DOMContentLoaded', function() {
+        const processingBadges = document.querySelectorAll('.badge:contains("Processing")');
+        if (processingBadges.length > 0) {
+            setTimeout(function() {
+                window.location.reload();
+            }, 30000); // Refresh every 30 seconds
+        }
+    });
+</script>
+{% endblock %}

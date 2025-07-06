@@ -1,0 +1,284 @@
+{% extends 'base/student_base.html' %}
+{% load static %}
+
+{% block title %}QuizHub - Student Home{% endblock %}
+
+{% block content1 %}
+<div class="container-fluid p-0">
+    <!-- Hero Section -->
+    <section class="hero-section position-relative overflow-hidden rounded-3 mb-4" style="background: linear-gradient(135deg, #4361ee, #3f37c9); color: white; padding: 60px 40px;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold mb-3">Welcome Back, {{ user.first_name|default:user.username }}! 🎓</h1>
+                    <p class="lead mb-4 opacity-75">Ready to test your knowledge? Explore quizzes, challenge yourself, and track your learning progress.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Start Quiz
+                        </a>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-robot me-2"></i>AI Quiz Generator
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="hero-stats bg-white bg-opacity-10 rounded-3 p-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="mb-1">{{ uploaded_files_count|default:0 }}</h3>
+                            <small>Files Uploaded</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="mb-1">{{ quizzes_completed|default:0 }}</h3>
+                            <small>Quizzes Completed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Decorative elements -->
+        <div class="position-absolute" style="bottom: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
+        <div class="position-absolute" style="top: -50px; left: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(40px);"></div>
+    </section>
+
+    <!-- Quick Actions Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 fw-bold mb-0">
+                <i class="bi bi-lightning text-primary me-2"></i>
+                Quick Actions
+            </h2>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card action-card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <div class="action-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-play-circle text-primary fs-1"></i>
+                        </div>
+                        <h5 class="card-title mb-2">Take Quiz</h5>
+                        <p class="card-text text-muted mb-3">Challenge yourself with various quizzes</p>
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary">Start Now</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card action-card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <div class="action-icon bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-upload text-success fs-1"></i>
+                        </div>
+                        <h5 class="card-title mb-2">Upload Content</h5>
+                        <p class="card-text text-muted mb-3">Upload files for AI quiz generation</p>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-success">Upload</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card action-card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <div class="action-icon bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-robot text-info fs-1"></i>
+                        </div>
+                        <h5 class="card-title mb-2">AI Quiz Generator</h5>
+                        <p class="card-text text-muted mb-3">Generate quizzes from your content</p>
+                        <a href="{% url 'textprocessor:generate_quiz' %}" class="btn btn-info">Generate</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card action-card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <div class="action-icon bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-folder text-warning fs-1"></i>
+                        </div>
+                        <h5 class="card-title mb-2">My Files</h5>
+                        <p class="card-text text-muted mb-3">Manage your uploaded files</p>
+                        <a href="{% url 'textprocessor:file_list' %}" class="btn btn-warning">View Files</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Quizzes Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h3 fw-bold mb-1">Featured Quizzes</h2>
+                <p class="text-muted mb-0">Popular quizzes you might enjoy</p>
+            </div>
+            <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary">View All</a>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="card quiz-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="quiz-icon bg-primary bg-opacity-10 rounded-circle me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-book text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title mb-1">Science Quiz</h6>
+                                <small class="text-muted">15 Questions</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted">Test your knowledge in general science topics</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success">Easy</span>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Take Quiz</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card quiz-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="quiz-icon bg-info bg-opacity-10 rounded-circle me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-calculator text-info"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title mb-1">Math Challenge</h6>
+                                <small class="text-muted">20 Questions</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted">Challenge yourself with math problems</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-warning">Medium</span>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Take Quiz</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card quiz-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="quiz-icon bg-success bg-opacity-10 rounded-circle me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-globe text-success"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title mb-1">Geography Quiz</h6>
+                                <small class="text-muted">10 Questions</small>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted">Explore world geography and locations</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success">Easy</span>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Take Quiz</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity Section -->
+    <section class="mb-5 p-4 rounded-3" style="background-color: #f8f9fa;">
+        <h2 class="h3 fw-bold mb-4">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            Recent Activity
+        </h2>
+        
+        {% if recent_files %}
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">Recently Uploaded Files</h5>
+                <div class="list-group">
+                    {% for file in recent_files %}
+                    <a href="{% url 'textprocessor:file_detail' file.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-file-earmark me-2"></i>
+                            {{ file.file.name|slice:"20:" }}{% if file.file.name|length > 20 %}...{% endif %}
+                        </div>
+                        <small class="text-muted">{{ file.uploaded_at|timesince }} ago</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5 class="mb-3">Quick Stats</h5>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-card text-center p-3 bg-white rounded">
+                            <h4 class="text-primary mb-1">{{ uploaded_files_count|default:0 }}</h4>
+                            <small class="text-muted">Files Uploaded</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card text-center p-3 bg-white rounded">
+                            <h4 class="text-success mb-1">{{ ai_generated_quizzes|default:0 }}</h4>
+                            <small class="text-muted">AI Quizzes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted display-1"></i>
+            <h4 class="mt-3 text-muted">No recent activity</h4>
+            <p class="text-muted">Start by uploading some content or taking a quiz!</p>
+            <div class="mt-3">
+                <a href="{% url 'textprocessor:upload' %}" class="btn btn-primary me-2">Upload Content</a>
+                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary">Browse Quizzes</a>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    .action-card {
+        transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .quiz-card {
+        transition: all 0.3s ease;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: scale(1.05);
+    }
+    
+    .hero-section {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .list-group-item {
+        border: none;
+        background-color: white;
+        margin-bottom: 0.5rem;
+        border-radius: 8px !important;
+        transition: all 0.3s ease;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
