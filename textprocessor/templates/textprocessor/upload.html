@@ -1,12 +1,553 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends dashboard_template %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .upload-zone {
+        border: 3px dashed #e0e7ff;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, #f8faff 0%, #e0e7ff 100%);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone:hover {
+        border-color: #6366f1;
+        background: linear-gradient(135deg, #eef2ff 0%, #ddd6fe 100%);
+        transform: translateY(-2px);
+    }
+
+    .upload-zone.dragover {
+        border-color: #4f46e5;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+
+    .upload-text h3 {
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .upload-text p {
+        color: #64748b;
+        margin-bottom: 1rem;
+    }
+
+    .file-types {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .file-type {
+        padding: 0.5rem 1rem;
+        background: white;
+        border-radius: 50px;
+        border: 2px solid #e2e8f0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #475569;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .recent-files {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .file-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #6366f1;
+    }
+
+    .file-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .file-icon.pdf { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .file-icon.txt { background: linear-gradient(135deg, #059669, #10b981); }
+    .file-icon.docx { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .file-icon.pptx { background: linear-gradient(135deg, #ea580c, #f97316); }
+
+    .file-info h6 {
+        margin: 0 0 0.25rem 0;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .file-meta {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .file-status {
+        margin-left: auto;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-processing { background: #fef3c7; color: #92400e; }
+    .status-failed { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #e0e7ff; color: #3730a3; }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 1rem;
+        display: none;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .upload-container {
+            padding: 1rem;
+        }
+        
+        .upload-zone {
+            padding: 2rem 1rem;
+        }
+        
+        .file-types {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .file-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .file-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Upload Syllabus or Content</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
+<div class="upload-container">
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+        <h1 class="h2 fw-bold text-primary mb-3">
+            <i class="bi bi-cloud-upload me-2"></i>Upload Educational Content
+        </h1>
+        <p class="text-muted fs-5">Upload syllabus, textbooks, or educational documents to generate AI-powered quizzes</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="stat-number">{{ recent_files|length }}</div>
+            <div class="stat-label">Recent Files</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-number">
+                {% with completed_count=recent_files|length %}{{ completed_count }}{% endwith %}
+            </div>
+            <div class="stat-label">Processed Files</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+                <i class="bi bi-journal-plus"></i>
+            </div>
+            <div class="stat-number">0</div>
+            <div class="stat-label">Quizzes Generated</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #ea580c, #f97316);">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="stat-number">AI</div>
+            <div class="stat-label">Powered</div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card border-0 shadow-lg">
+        <div class="card-body p-0">
+            <form method="post" enctype="multipart/form-data" id="uploadForm" class="p-4">
+                {% csrf_token %}
+                
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <div class="upload-text">
+                        <h3>Drag & Drop Your Files Here</h3>
+                        <p>or click to browse and select files</p>
+                        <button type="button" class="btn btn-primary px-4" id="browseBtn">
+                            <i class="bi bi-folder2-open me-2"></i>Browse Files
+                        </button>
+                    </div>
+                    
+                    <div class="file-types">
+                        <span class="file-type">PDF</span>
+                        <span class="file-type">TXT</span>
+                        <span class="file-type">DOCX</span>
+                        <span class="file-type">PPTX</span>
+                    </div>
+                    
+                    {{ form.file }}
+                </div>
+
+                <!-- Description Field -->
+                <div class="mt-4">
+                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-chat-text me-2 text-primary"></i>Description (Optional)
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" disabled>
+                        <i class="bi bi-upload me-2"></i>Process & Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Files -->
+    {% if recent_files %}
+    <div class="recent-files">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="h4 fw-bold text-dark mb-0">
+                <i class="bi bi-clock-history me-2 text-primary"></i>Recent Files
+            </h3>
+            <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-list me-2"></i>View All Files
+            </a>
+        </div>
+
+        {% for file in recent_files %}
+        <div class="file-item">
+            <div class="file-icon {{ file.file_type }}">
+                {% if file.file_type == 'pdf' %}<i class="bi bi-file-earmark-pdf"></i>
+                {% elif file.file_type == 'txt' %}<i class="bi bi-file-earmark-text"></i>
+                {% elif file.file_type == 'docx' %}<i class="bi bi-file-earmark-word"></i>
+                {% elif file.file_type == 'pptx' %}<i class="bi bi-file-earmark-ppt"></i>
+                {% else %}<i class="bi bi-file-earmark"></i>{% endif %}
+            </div>
+            <div class="file-info flex-grow-1">
+                <h6>{{ file.original_filename }}</h6>
+                <div class="file-meta">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ file.uploaded_at|date:"M j, Y" }}</span>
+                    <span class="ms-3"><i class="bi bi-hdd me-1"></i>{{ file.file_size_mb }} MB</span>
+                    {% if file.topic_count %}
+                    <span class="ms-3"><i class="bi bi-tags me-1"></i>{{ file.topic_count }} topics</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="file-status status-{{ file.status }}">
+                {% if file.status == 'completed' %}<i class="bi bi-check-circle me-1"></i>Completed
+                {% elif file.status == 'processing' %}<i class="bi bi-hourglass-split me-1"></i>Processing
+                {% elif file.status == 'failed' %}<i class="bi bi-x-circle me-1"></i>Failed
+                {% else %}<i class="bi bi-clock me-1"></i>Pending{% endif %}
+            </div>
+            <div class="ms-3">
+                <a href="{% url 'textprocessor:file_detail' file.id %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="text-center mt-5 pt-4 border-top">
+        <h5 class="fw-semibold mb-3">What would you like to do?</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{% url 'textprocessor:generate_quiz' %}" class="btn btn-outline-primary w-100 py-3">
+                    <i class="bi bi-robot d-block fs-3 mb-2"></i>
+                    Generate Quiz from Files
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'quizzes:ai_generate_quiz' %}" class="btn btn-outline-success w-100 py-3">
+                    <i class="bi bi-magic d-block fs-3 mb-2"></i>
+                    Create AI Quiz
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-info w-100 py-3">
+                    <i class="bi bi-list-check d-block fs-3 mb-2"></i>
+                    Browse Quizzes
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('{{ form.file.id_for_label }}');
+    const browseBtn = document.getElementById('browseBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+
+    // Hide the default file input
+    fileInput.style.display = 'none';
+
+    // Browse button click
+    browseBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Upload zone click
+    uploadZone.addEventListener('click', (e) => {
+        if (e.target !== browseBtn) {
+            fileInput.click();
+        }
+    });
+
+    // Drag and drop functionality
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelection();
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', handleFileSelection);
+
+    function handleFileSelection() {
+        const file = fileInput.files[0];
+        if (file) {
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+            
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|txt|docx|pptx)$/i)) {
+                alert('Please select a valid file type (PDF, TXT, DOCX, PPTX)');
+                fileInput.value = '';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            // Validate file size (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                fileInput.value = '';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            // Update UI
+            updateUploadZone(file);
+            submitBtn.disabled = false;
+        } else {
+            resetUploadZone();
+            submitBtn.disabled = true;
+        }
+    }
+
+    function updateUploadZone(file) {
+        const uploadText = uploadZone.querySelector('.upload-text');
+        uploadText.innerHTML = `
+            <h3><i class="bi bi-check-circle text-success me-2"></i>File Selected</h3>
+            <p><strong>${file.name}</strong> (${(file.size / (1024 * 1024)).toFixed(2)} MB)</p>
+            <button type="button" class="btn btn-outline-secondary" id="changeBrse">
+                <i class="bi bi-arrow-repeat me-2"></i>Choose Different File
+            </button>
+        `;
+        
+        // Re-bind browse button
+        document.getElementById('changeBrse').addEventListener('click', () => {
+            fileInput.click();
+        });
+    }
+
+    function resetUploadZone() {
+        const uploadText = uploadZone.querySelector('.upload-text');
+        uploadText.innerHTML = `
+            <h3>Drag & Drop Your Files Here</h3>
+            <p>or click to browse and select files</p>
+            <button type="button" class="btn btn-primary px-4" id="browseBtn">
+                <i class="bi bi-folder2-open me-2"></i>Browse Files
+            </button>
+        `;
+        
+        // Re-bind browse button
+        document.getElementById('browseBtn').addEventListener('click', () => {
+            fileInput.click();
+        });
+    }
+
+    // Form submission
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.files[0]) {
+            e.preventDefault();
+            alert('Please select a file to upload');
+            return;
+        }
+
+        // Show progress bar
+        progressBar.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
+
+        // Simulate progress (in real app, use proper upload progress)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) {
+                progress = 90;
+                clearInterval(progressInterval);
+            }
+            progressFill.style.width = progress + '%';
+        }, 200);
+    });
+
+    // Auto-refresh for file status (if processing)
+    const processingFiles = document.querySelectorAll('.status-processing');
+    if (processingFiles.length > 0) {
+        setTimeout(() => {
+            location.reload();
+        }, 5000); // Refresh every 5 seconds if there are processing files
+    }
+});
+</script>
 {% endblock %}

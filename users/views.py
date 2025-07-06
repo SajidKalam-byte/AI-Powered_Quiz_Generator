@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Avg, Count, Max
+from django.utils import timezone
 from .models import CustomUser
 from .decorators import role_required
 from quizzes.models import Quiz, UserQuizAttempt
@@ -133,18 +134,45 @@ def dashboard(request):
     """
     user = request.user
     template_map = {
-        # 'student': 'base/student_base.html',
-        'student': 'base/index.html',
-        'teacher': 'base/indexteach.html',
-        'admin': 'dashboard/admin_dash.html'
+        'student': 'base/student_base.html',
+        'teacher': 'base/dashboard_base.html',
+        'admin': 'admin/dash_admin.html'
     }
     template = template_map.get(user.role)
     if not template:
         messages.error(request, "Unknown user role. Contact admin.")
         return redirect('users:login')
 
+    # Prepare dashboard context data
+    context = {
+        'dashboard_template': get_dashboard_template(user),
+        'current_date': timezone.now(),
+    }
+    
+    # Add student-specific context
+    if user.role == 'student':
+        from textprocessor.models import UploadedFile
+        from quizzes.models import Quiz
+        
+        # Get user's uploaded files
+        user_files = UploadedFile.objects.filter(user=user)
+        recent_files = user_files.order_by('-uploaded_at')[:5]
+        
+        # Calculate statistics
+        uploaded_files_count = user_files.count()
+        ai_generated_quizzes = Quiz.objects.filter(created_by=user).count()
+        
+        # Add to context
+        context.update({
+            'recent_files': recent_files,
+            'uploaded_files_count': uploaded_files_count,
+            'ai_generated_quizzes': ai_generated_quizzes,
+            'quizzes_completed': 0,  # TODO: Implement quiz attempts tracking
+            'average_score': 85,     # TODO: Calculate from quiz results
+        })
+
     messages.success(request, f"You are logged in as a {user.role}.")
-    return render(request, template, {'dashboard_template': template})
+    return render(request, template, context)
 
 @login_required
 def profile_view(request):

@@ -1,0 +1,507 @@
+{% extends dashboard_template %}
+{% load static %}
+
+{% block title %}Generate Quiz from File{% endblock %}
+
+{% block extra_css %}
+<style>
+    .generation-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .file-preview {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .topic-selection {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .topic-option {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .topic-option:hover {
+        border-color: #007bff;
+        background: #f0f8ff;
+    }
+    
+    .topic-option.selected {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    
+    .topic-option input[type="radio"] {
+        margin-right: 0.75rem;
+    }
+    
+    .available-topics {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .topic-badge {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        border-radius: 25px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .topic-badge:hover {
+        background: #007bff;
+        color: white;
+    }
+    
+    .topic-badge.selected {
+        background: #007bff;
+        color: white;
+    }
+    
+    .difficulty-selector {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .difficulty-option {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .difficulty-option:hover {
+        border-color: #007bff;
+        background: #f0f8ff;
+    }
+    
+    .difficulty-option.selected {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    
+    .difficulty-easy { border-left-color: #28a745; }
+    .difficulty-medium { border-left-color: #ffc107; }
+    .difficulty-hard { border-left-color: #dc3545; }
+    
+    .generation-preview {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .custom-range {
+        -webkit-appearance: none;
+        appearance: none;
+        background: #e9ecef;
+        border-radius: 5px;
+        height: 8px;
+        outline: none;
+    }
+    
+    .custom-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        background: #007bff;
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        cursor: pointer;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        display: none;
+    }
+    
+    .loading-content {
+        background: white;
+        padding: 3rem;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 400px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Files
+        </a>
+    </div>
+    
+    <!-- Header -->
+    <div class="generation-header">
+        <h1 class="mb-3">
+            <i class="fas fa-magic me-3"></i>
+            Generate AI-Powered Quiz
+        </h1>
+        <p class="mb-0 opacity-90">
+            Create intelligent quizzes from your uploaded content using advanced AI technology
+        </p>
+    </div>
+    
+    <!-- Selected File Preview -->
+    {% if selected_file %}
+    <div class="file-preview">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                {% if selected_file.file_type == 'pdf' %}
+                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                {% elif selected_file.file_type == 'docx' %}
+                    <i class="fas fa-file-word fa-2x text-primary"></i>
+                {% elif selected_file.file_type == 'pptx' %}
+                    <i class="fas fa-file-powerpoint fa-2x text-warning"></i>
+                {% else %}
+                    <i class="fas fa-file-alt fa-2x text-secondary"></i>
+                {% endif %}
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="mb-1">{{ selected_file.original_filename }}</h5>
+                <div class="text-muted small">
+                    <i class="fas fa-calendar me-1"></i>{{ selected_file.uploaded_at|date:"M d, Y" }}
+                    <i class="fas fa-hdd ms-3 me-1"></i>{{ selected_file.file.size|filesizeformat }}
+                    {% if selected_file.processed_topics.topics %}
+                    <i class="fas fa-tags ms-3 me-1"></i>{{ selected_file.processed_topics.topics|length }} topics
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'textprocessor:file_detail' selected_file.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-eye me-1"></i>View Details
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quiz Generation Form -->
+    <form method="post" id="quizGenerationForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- File Selection -->
+                {% if not selected_file %}
+                <div class="form-section">
+                    <h4 class="mb-3">
+                        <i class="fas fa-file-upload text-primary me-2"></i>
+                        Select File
+                    </h4>
+                    {{ form.uploaded_file }}
+                    {% if form.uploaded_file.errors %}
+                        <div class="text-danger mt-2">{{ form.uploaded_file.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Content Selection -->
+                <div class="form-section">
+                    <h4 class="mb-3">
+                        <i class="fas fa-bullseye text-primary me-2"></i>
+                        Content Focus
+                    </h4>
+                    
+                    <div class="topic-selection">
+                        {{ form.topic_selection }}
+                        {% if form.topic_selection.errors %}
+                            <div class="text-danger mt-2">{{ form.topic_selection.errors }}</div>
+                        {% endif %}
+                        
+                        <div id="specificTopicField" class="mt-3" style="display: none;">
+                            <label class="form-label">{{ form.specific_topic.label }}</label>
+                            {{ form.specific_topic }}
+                            <div class="form-text">{{ form.specific_topic.help_text }}</div>
+                            {% if form.specific_topic.errors %}
+                                <div class="text-danger mt-2">{{ form.specific_topic.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Available Topics -->
+                        {% if selected_file and selected_file.processed_topics.topics %}
+                        <div id="availableTopics" class="available-topics" style="display: none;">
+                            <h6>Available Topics (click to select):</h6>
+                            {% for topic in selected_file.processed_topics.topics %}
+                            <span class="topic-badge" onclick="selectTopic('{{ topic }}')">
+                                {{ topic }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quiz Configuration -->
+                <div class="form-section">
+                    <h4 class="mb-3">
+                        <i class="fas fa-cogs text-primary me-2"></i>
+                        Quiz Configuration
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.num_questions.label }}</label>
+                            <div class="d-flex align-items-center">
+                                {{ form.num_questions }}
+                                <span class="ms-3 text-muted" id="questionCount">10 questions</span>
+                            </div>
+                            {% if form.num_questions.errors %}
+                                <div class="text-danger mt-2">{{ form.num_questions.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.category.label }}</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger mt-2">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="form-label">{{ form.difficulty.label }}</label>
+                        <div class="difficulty-selector">
+                            <div class="difficulty-option difficulty-easy" data-value="EASY">
+                                <i class="fas fa-smile fa-2x text-success mb-2"></i>
+                                <h6>Easy</h6>
+                                <small class="text-muted">Basic concepts and definitions</small>
+                            </div>
+                            <div class="difficulty-option difficulty-medium selected" data-value="MEDIUM">
+                                <i class="fas fa-meh fa-2x text-warning mb-2"></i>
+                                <h6>Medium</h6>
+                                <small class="text-muted">Application and understanding</small>
+                            </div>
+                            <div class="difficulty-option difficulty-hard" data-value="HARD">
+                                <i class="fas fa-frown fa-2x text-danger mb-2"></i>
+                                <h6>Hard</h6>
+                                <small class="text-muted">Analysis and synthesis</small>
+                            </div>
+                        </div>
+                        {{ form.difficulty }}
+                        {% if form.difficulty.errors %}
+                            <div class="text-danger mt-2">{{ form.difficulty.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        AI Generation Tips
+                    </h5>
+                    
+                    <div class="alert alert-info small">
+                        <h6><i class="fas fa-robot me-1"></i>How AI Quiz Generation Works:</h6>
+                        <ul class="mb-0 ps-3">
+                            <li>AI analyzes your content structure</li>
+                            <li>Identifies key concepts and topics</li>
+                            <li>Generates diverse question types</li>
+                            <li>Ensures appropriate difficulty level</li>
+                            <li>Creates realistic distractors</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-success small">
+                        <h6><i class="fas fa-tips me-1"></i>Best Practices:</h6>
+                        <ul class="mb-0 ps-3">
+                            <li>Select specific topics for focused quizzes</li>
+                            <li>Start with 10-15 questions</li>
+                            <li>Choose appropriate difficulty</li>
+                            <li>Review and edit generated questions</li>
+                        </ul>
+                    </div>
+                    
+                    {% if selected_file %}
+                    <div class="mt-3">
+                        <h6>Content Statistics:</h6>
+                        <div class="small text-muted">
+                            <div><strong>Text Length:</strong> {{ selected_file.extracted_text|length }} characters</div>
+                            <div><strong>Estimated Words:</strong> {{ selected_file.extracted_text|wordcount }}</div>
+                            {% if selected_file.processed_topics.topics %}
+                            <div><strong>Topics Available:</strong> {{ selected_file.processed_topics.topics|length }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generation Preview -->
+        <div class="generation-preview">
+            <h3 class="mb-3">
+                <i class="fas fa-rocket me-2"></i>
+                Ready to Generate Your Quiz?
+            </h3>
+            <p class="mb-4">
+                AI will analyze your content and create <span id="previewQuestionCount">10</span> 
+                <span id="previewDifficulty">medium</span> difficulty questions.
+            </p>
+            <button type="submit" class="btn btn-light btn-lg" id="generateButton">
+                <i class="fas fa-magic me-2"></i>
+                Generate Quiz with AI
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+        <h4>AI is Generating Your Quiz...</h4>
+        <p class="text-muted mb-4">
+            This may take 30-60 seconds while we analyze your content and create intelligent questions.
+        </p>
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 role="progressbar" style="width: 100%"></div>
+        </div>
+        <div class="mt-3 small text-muted">
+            Please don't close this window...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Topic selection handling
+    const topicRadios = document.querySelectorAll('input[name="topic_selection"]');
+    const specificTopicField = document.getElementById('specificTopicField');
+    const availableTopics = document.getElementById('availableTopics');
+    
+    topicRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'specific_topic') {
+                specificTopicField.style.display = 'block';
+                if (availableTopics) availableTopics.style.display = 'block';
+            } else {
+                specificTopicField.style.display = 'none';
+                if (availableTopics) availableTopics.style.display = 'none';
+            }
+        });
+    });
+    
+    // Difficulty selection
+    const difficultyOptions = document.querySelectorAll('.difficulty-option');
+    const difficultyInput = document.getElementById('{{ form.difficulty.id_for_label }}');
+    
+    difficultyOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            difficultyOptions.forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            difficultyInput.value = this.dataset.value;
+            updatePreview();
+        });
+    });
+    
+    // Question count slider
+    const questionInput = document.getElementById('{{ form.num_questions.id_for_label }}');
+    const questionCount = document.getElementById('questionCount');
+    
+    questionInput.addEventListener('input', function() {
+        questionCount.textContent = this.value + ' questions';
+        updatePreview();
+    });
+    
+    // Form submission
+    document.getElementById('quizGenerationForm').addEventListener('submit', function(e) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    });
+    
+    // Initial setup
+    const selectedTopicRadio = document.querySelector('input[name="topic_selection"]:checked');
+    if (selectedTopicRadio && selectedTopicRadio.value === 'specific_topic') {
+        specificTopicField.style.display = 'block';
+        if (availableTopics) availableTopics.style.display = 'block';
+    }
+    
+    updatePreview();
+});
+
+function selectTopic(topic) {
+    const specificTopicInput = document.getElementById('{{ form.specific_topic.id_for_label }}');
+    const topicBadges = document.querySelectorAll('.topic-badge');
+    
+    // Clear previous selections
+    topicBadges.forEach(badge => badge.classList.remove('selected'));
+    
+    // Select clicked topic
+    event.target.classList.add('selected');
+    specificTopicInput.value = topic;
+}
+
+function updatePreview() {
+    const questionCount = document.getElementById('{{ form.num_questions.id_for_label }}').value;
+    const difficulty = document.getElementById('{{ form.difficulty.id_for_label }}').value.toLowerCase();
+    
+    document.getElementById('previewQuestionCount').textContent = questionCount;
+    document.getElementById('previewDifficulty').textContent = difficulty;
+}
+</script>
+{% endblock %}

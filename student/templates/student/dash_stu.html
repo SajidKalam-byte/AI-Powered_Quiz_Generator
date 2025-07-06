@@ -1,13 +1,352 @@
 ﻿{% extends dashboard_template %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        color: #666;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+    
+    .quick-action-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: transform 0.3s ease;
+        border: none;
+        height: 100%;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .action-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin: 0 auto 1rem;
+    }
+    
+    .recent-activity {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: none;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1rem;
+        color: white;
+    }
+    
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+    
+    .progress-ring-circle {
+        transition: stroke-dashoffset 0.35s;
+        transform-origin: 50% 50%;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <h2>Welcome, {{ user.full_name }}!</h2>
-    <p>Role: {{ user.role }}</p>
-    {% if user.role == 'student' %}
-        <p>Roll No: {{ user.student_roll_no }}</p>
-        <p>Academic Year: {{ user.academic_year }}</p>
-    {% elif user.role == 'teacher' %}
-        <p>Email: {{ user.teacher_email }}</p>
-    {% endif %}
-    <!-- Add more dashboard content, e.g., recent quizzes, scores, etc. -->
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">Welcome back, {{ user.first_name|default:user.username }}! 🎯</h1>
+                <p class="mb-0 opacity-90">
+                    Ready to create some amazing AI-powered quizzes today? Let's get started!
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="text-white">
+                    <small class="opacity-75">Today</small><br>
+                    <strong>{{ current_date|date:"F d, Y" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(45deg, #667eea, #764ba2);">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <div class="stats-number">{{ uploaded_files_count|default:0 }}</div>
+                <p class="stats-label">Files Uploaded</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(45deg, #4cc9f0, #7209b7);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="stats-number">{{ ai_generated_quizzes|default:0 }}</div>
+                <p class="stats-label">AI Generated Quizzes</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(45deg, #06ffa5, #00d4aa);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-number">{{ quizzes_completed|default:0 }}</div>
+                <p class="stats-label">Quizzes Completed</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(45deg, #ffa726, #fb8c00);">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stats-number">{{ average_score|default:0 }}%</div>
+                <p class="stats-label">Average Score</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3">
+                <i class="fas fa-rocket text-primary me-2"></i>
+                Quick Actions
+            </h4>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'textprocessor:upload' %}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <div class="action-icon" style="background: linear-gradient(45deg, #667eea, #764ba2);">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h5 class="mb-2">Upload Content</h5>
+                    <p class="text-muted small mb-0">Upload syllabus, PDFs, or documents to generate quizzes</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'textprocessor:generate_quiz' %}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <div class="action-icon" style="background: linear-gradient(45deg, #4cc9f0, #7209b7);">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h5 class="mb-2">AI Quiz Generator</h5>
+                    <p class="text-muted small mb-0">Create intelligent quizzes with AI from your content</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'quizzes:quiz_list' %}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <div class="action-icon" style="background: linear-gradient(45deg, #06ffa5, #00d4aa);">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h5 class="mb-2">Take Quiz</h5>
+                    <p class="text-muted small mb-0">Explore and take available quizzes</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="{% url 'textprocessor:file_list' %}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <div class="action-icon" style="background: linear-gradient(45deg, #ffa726, #fb8c00);">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h5 class="mb-2">My Files</h5>
+                    <p class="text-muted small mb-0">Manage your uploaded files and content</p>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Activity & Processing Files -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="recent-activity">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock text-primary me-2"></i>
+                    Recent Activity
+                </h5>
+                
+                {% if recent_files %}
+                    {% for file in recent_files %}
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: {% if file.status == 'completed' %}#28a745{% elif file.status == 'processing' %}#ffc107{% else %}#dc3545{% endif %};">
+                            {% if file.file_type == 'pdf' %}
+                                <i class="fas fa-file-pdf"></i>
+                            {% elif file.file_type == 'docx' %}
+                                <i class="fas fa-file-word"></i>
+                            {% elif file.file_type == 'pptx' %}
+                                <i class="fas fa-file-powerpoint"></i>
+                            {% else %}
+                                <i class="fas fa-file-alt"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ file.original_filename|truncatechars:40 }}</h6>
+                            <small class="text-muted">
+                                {% if file.status == 'completed' %}
+                                    Processed {{ file.processed_at|timesince }} ago
+                                {% elif file.status == 'processing' %}
+                                    Currently processing...
+                                {% else %}
+                                    Failed to process
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div>
+                            {% if file.status == 'completed' %}
+                                <a href="{% url 'textprocessor:generate_quiz' %}?file={{ file.id }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-magic me-1"></i>Generate Quiz
+                                </a>
+                            {% elif file.status == 'processing' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                        <h6>No files uploaded yet</h6>
+                        <p class="text-muted mb-3">Upload your first document to get started with AI quiz generation</p>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Upload First File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Tips & Getting Started -->
+            <div class="recent-activity">
+                <h5 class="mb-3">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>
+                    Getting Started
+                </h5>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-upload text-primary me-2"></i>Step 1: Upload Content</h6>
+                    <p class="small text-muted mb-0">Upload your syllabus, PDFs, Word docs, or PowerPoint files</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-robot text-info me-2"></i>Step 2: AI Processing</h6>
+                    <p class="small text-muted mb-0">Our AI analyzes your content and extracts key topics</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-magic text-success me-2"></i>Step 3: Generate Quiz</h6>
+                    <p class="small text-muted mb-0">Create intelligent quizzes with customizable difficulty</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-play text-warning me-2"></i>Step 4: Take & Share</h6>
+                    <p class="small text-muted mb-0">Take your quiz and share with others</p>
+                </div>
+                
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Pro Tip:</strong> Upload well-structured documents for better AI quiz generation results!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh for processing files
+    const processingItems = document.querySelectorAll('.activity-item .badge:contains("Processing")');
+    if (processingItems.length > 0) {
+        setTimeout(() => {
+            window.location.reload();
+        }, 30000); // Refresh every 30 seconds
+    }
+});
+</script>
 {% endblock %}
