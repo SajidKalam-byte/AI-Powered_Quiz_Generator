@@ -1,103 +1,490 @@
 {% extends dashboard_template %}
 
-
 {% block content %}
 <div class="container-fluid px-4 py-5">
-    <div class="quiz-header glass-morphism p-4 mb-5 rounded-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="display-5 fw-bold gradient-text mb-2">{{ quiz.title }}</h1>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-clock-history me-1"></i> 
-                        <span id="timer">00:00</span>
-                    </span>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
-                        <i class="bi bi-question-circle me-1"></i> 
-                        {{ questions|length }} Questions
-                    </span>
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-morphism p-4 rounded-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 fw-bold gradient-text mb-2">{{ quiz.title }}</h1>
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                <i class="bi bi-clock-history me-1"></i> 
+                                <span id="timer">{{ quiz.time_limit }}:00</span>
+                            </span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
+                                <i class="bi bi-question-circle me-1"></i> 
+                                {{ questions|length }} Questions
+                            </span>
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                <i class="bi bi-award me-1"></i> 
+                                {{ quiz.points_reward }} Points
+                            </span>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-circle mb-2">
+                            <svg class="progress-svg" width="80" height="80">
+                                <circle cx="40" cy="40" r="35" stroke="#e9ecef" stroke-width="6" fill="none"></circle>
+                                <circle cx="40" cy="40" r="35" stroke="#0d6efd" stroke-width="6" fill="none" 
+                                        stroke-dasharray="220" stroke-dashoffset="220" id="progressCircle"></circle>
+                            </svg>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                        <small class="text-muted d-block text-center" id="questionCounter">Question 1 of {{ questions|length }}</small>
+                    </div>
                 </div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar-glass">
-                    <div class="progress-fill" id="quizProgress" style="width: 0%"></div>
-                </div>
-                <small class="text-muted" id="progressText">Question 1 of {{ questions|length }}</small>
             </div>
         </div>
     </div>
 
-    <form method="post" id="quizForm">
+    <!-- Quiz Content -->
+    <form method="post" id="quizForm" action="{% url 'quizzes:submit_quiz' quiz.id %}">
         {% csrf_token %}
+        
         <div class="quiz-questions">
             {% for question in questions %}
-            <div class="question-card card-glass mb-4" id="question-{{ forloop.counter }}" 
+            <div class="question-card card-glass mb-4 rounded-4" id="question-{{ forloop.counter }}" 
                  {% if not forloop.first %}style="display:none;"{% endif %}>
-                <div class="card-body">
-                    <div class="question-header d-flex justify-content-between mb-4">
-                        <h3 class="question-number">Question #{{ forloop.counter }}</h3>
-                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                <div class="card-body p-4">
+                    <div class="question-header d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="question-number text-primary mb-1">Question {{ forloop.counter }}</h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning text-dark">{{ question.points }} pts</span>
+                                <span class="badge bg-{{ question.get_difficulty_display|lower }} bg-opacity-10 text-{{ question.get_difficulty_display|lower }}">
+                                    {{ question.get_difficulty_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary fs-6">
                             {{ forloop.counter }}/{{ questions|length }}
                         </span>
                     </div>
                     
-                    <h4 class="question-text mb-4">{{ question.text }}</h4>
+                    <h4 class="question-text mb-4 lh-base">{{ question.text }}</h4>
                     
-                    <div class="options-grid">
-                        <label class="option-card" for="option-{{ question.id }}-A">
-                            <input type="radio" id="option-{{ question.id }}-A" 
-                                   name="question_{{ question.id }}" value="A" required>
-                            <div class="option-content">
-                                <span class="option-letter">A</span>
-                                <span class="option-text">{{ question.option_a }}</span>
+                    <div class="options-container">
+                        {% if question.question_type == 'MULTIPLE_CHOICE' %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-A">
+                                        <input type="radio" id="option-{{ question.id }}-A" 
+                                               name="question_{{ question.id }}" value="A" required>
+                                        <div class="option-content p-3">
+                                            <span class="option-letter">A</span>
+                                            <span class="option-text">{{ question.option_a }}</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-B">
+                                        <input type="radio" id="option-{{ question.id }}-B" 
+                                               name="question_{{ question.id }}" value="B">
+                                        <div class="option-content p-3">
+                                            <span class="option-letter">B</span>
+                                            <span class="option-text">{{ question.option_b }}</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-C">
+                                        <input type="radio" id="option-{{ question.id }}-C" 
+                                               name="question_{{ question.id }}" value="C">
+                                        <div class="option-content p-3">
+                                            <span class="option-letter">C</span>
+                                            <span class="option-text">{{ question.option_c }}</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-D">
+                                        <input type="radio" id="option-{{ question.id }}-D" 
+                                               name="question_{{ question.id }}" value="D">
+                                        <div class="option-content p-3">
+                                            <span class="option-letter">D</span>
+                                            <span class="option-text">{{ question.option_d }}</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                        </label>
-                        
-                        <label class="option-card" for="option-{{ question.id }}-B">
-                            <input type="radio" id="option-{{ question.id }}-B" 
-                                   name="question_{{ question.id }}" value="B">
-                            <div class="option-content">
-                                <span class="option-letter">B</span>
-                                <span class="option-text">{{ question.option_b }}</span>
+                        {% elif question.question_type == 'TRUE_FALSE' %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-A">
+                                        <input type="radio" id="option-{{ question.id }}-A" 
+                                               name="question_{{ question.id }}" value="A" required>
+                                        <div class="option-content p-3">
+                                            <span class="option-letter text-success">T</span>
+                                            <span class="option-text">True</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="option-card w-100" for="option-{{ question.id }}-B">
+                                        <input type="radio" id="option-{{ question.id }}-B" 
+                                               name="question_{{ question.id }}" value="B">
+                                        <div class="option-content p-3">
+                                            <span class="option-letter text-danger">F</span>
+                                            <span class="option-text">False</span>
+                                        </div>
+                                        <div class="option-check">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                        </label>
-                        
-                        <label class="option-card" for="option-{{ question.id }}-C">
-                            <input type="radio" id="option-{{ question.id }}-C" 
-                                   name="question_{{ question.id }}" value="C">
-                            <div class="option-content">
-                                <span class="option-letter">C</span>
-                                <span class="option-text">{{ question.option_c }}</span>
-                            </div>
-                        </label>
-                        
-                        <label class="option-card" for="option-{{ question.id }}-D">
-                            <input type="radio" id="option-{{ question.id }}-D" 
-                                   name="question_{{ question.id }}" value="D">
-                            <div class="option-content">
-                                <span class="option-letter">D</span>
-                                <span class="option-text">{{ question.option_d }}</span>
-                            </div>
-                        </label>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <div class="quiz-navigation d-flex justify-content-between mt-4">
-            <button type="button" class="btn btn-glass" id="prevBtn" disabled>
-                <i class="bi bi-chevron-left me-1"></i> Previous
+        <div class="quiz-navigation d-flex justify-content-between align-items-center mt-4 p-4 glass-morphism rounded-4">
+            <button type="button" class="btn btn-outline-secondary btn-lg" id="prevBtn" disabled>
+                <i class="bi bi-chevron-left me-2"></i>Previous
             </button>
             
-            <button type="button" class="btn btn-primary btn-glow" id="nextBtn">
-                Next <i class="bi bi-chevron-right ms-1"></i>
-            </button>
-            
-            <button type="submit" class="btn btn-success btn-glow" id="submitBtn" style="display:none;">
-                Submit Answers <i class="bi bi-check-circle ms-1"></i>
-            </button>
+            <div class="quiz-actions">
+                <button type="button" class="btn btn-primary btn-lg me-3" id="nextBtn">
+                    Next <i class="bi bi-chevron-right ms-2"></i>
+                </button>
+                
+                <button type="submit" class="btn btn-success btn-lg btn-glow" id="submitBtn" style="display:none;">
+                    <i class="bi bi-check-circle me-2"></i>Submit Quiz
+                </button>
+            </div>
         </div>
+    </form>
+</div>
+
+<style>
+/* Modern Quiz Taking Styles */
+.glass-morphism {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.card-glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.progress-container {
+    position: relative;
+}
+
+.progress-circle {
+    position: relative;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #0d6efd;
+}
+
+.option-card {
+    cursor: pointer;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.option-card:hover {
+    border-color: #0d6efd;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+}
+
+.option-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.option-card input[type="radio"]:checked + .option-content {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+    color: white;
+}
+
+.option-card input[type="radio"]:checked ~ .option-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.option-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+}
+
+.option-letter {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.option-card input[type="radio"]:checked + .option-content .option-letter {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.option-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.option-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #28a745;
+    font-size: 1.2rem;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+.question-number {
+    font-size: 1.3rem;
+    margin-bottom: 0;
+}
+
+.question-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.btn-glow {
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+    transform: translateY(-2px);
+}
+
+.quiz-navigation {
+    position: sticky;
+    bottom: 20px;
+    z-index: 100;
+}
+
+@media (max-width: 768px) {
+    .quiz-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .quiz-actions {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .quiz-actions button {
+        flex: 1;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('quizForm');
+    const questions = document.querySelectorAll('.question-card');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressCircle = document.getElementById('progressCircle');
+    const progressText = document.getElementById('progressText');
+    const questionCounter = document.getElementById('questionCounter');
+    const timer = document.getElementById('timer');
+    
+    let currentQuestion = 0;
+    const totalQuestions = questions.length;
+    
+    // Timer functionality
+    const timeLimit = {{ quiz.time_limit }} * 60; // Convert to seconds
+    let timeRemaining = timeLimit;
+    
+    function updateTimer() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 0) {
+            alert('Time is up! Submitting your quiz...');
+            form.submit();
+            return;
+        }
+        
+        timeRemaining--;
+    }
+    
+    // Start timer
+    const timerInterval = setInterval(updateTimer, 1000);
+    
+    // Progress tracking
+    function updateProgress() {
+        const answeredQuestions = Array.from(questions).filter(q => {
+            const inputs = q.querySelectorAll('input[type="radio"]');
+            return Array.from(inputs).some(input => input.checked);
+        }).length;
+        
+        const progress = (answeredQuestions / totalQuestions) * 100;
+        const circumference = 2 * Math.PI * 35; // radius = 35
+        const offset = circumference - (progress / 100) * circumference;
+        
+        progressCircle.style.strokeDashoffset = offset;
+        progressText.textContent = Math.round(progress) + '%';
+    }
+    
+    // Question navigation
+    function showQuestion(index) {
+        questions.forEach((q, i) => {
+            q.style.display = i === index ? 'block' : 'none';
+        });
+        
+        questionCounter.textContent = `Question ${index + 1} of ${totalQuestions}`;
+        
+        // Update button states
+        prevBtn.disabled = index === 0;
+        
+        if (index === totalQuestions - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+        
+        updateProgress();
+    }
+    
+    // Next button
+    nextBtn.addEventListener('click', function() {
+        const currentQ = questions[currentQuestion];
+        const selectedOption = currentQ.querySelector('input[type="radio"]:checked');
+        
+        if (!selectedOption) {
+            alert('Please select an answer before proceeding.');
+            return;
+        }
+        
+        if (currentQuestion < totalQuestions - 1) {
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        }
+    });
+    
+    // Previous button
+    prevBtn.addEventListener('click', function() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        }
+    });
+    
+    // Auto-progress on option selection (optional)
+    questions.forEach((question, index) => {
+        const radioInputs = question.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                updateProgress();
+                
+                // Auto-advance after 1 second (optional)
+                if (index < totalQuestions - 1) {
+                    setTimeout(() => {
+                        if (input.checked && currentQuestion === index) {
+                            currentQuestion++;
+                            showQuestion(currentQuestion);
+                        }
+                    }, 800);
+                }
+            });
+        });
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        clearInterval(timerInterval);
+        
+        const answeredQuestions = Array.from(questions).filter(q => {
+            const inputs = q.querySelectorAll('input[type="radio"]');
+            return Array.from(inputs).some(input => input.checked);
+        }).length;
+        
+        if (answeredQuestions < totalQuestions) {
+            if (!confirm(`You have answered ${answeredQuestions} out of ${totalQuestions} questions. Are you sure you want to submit?`)) {
+                e.preventDefault();
+                return;
+            }
+        }
+        
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+        submitBtn.disabled = true;
+    });
+    
+    // Initialize
+    showQuestion(0);
+    updateProgress();
+});
+</script>
     </form>
 </div>
 

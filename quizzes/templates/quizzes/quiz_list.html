@@ -2,77 +2,172 @@
 
 {% block content %}
 <div class="container-fluid px-4 py-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <h2 class="display-5 fw-bold mb-0 gradient-text">Available Quizzes</h2>
-        <div class="d-flex gap-3">
-            <div class="dropdown">
-                <button class="btn btn-glass dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-funnel-fill me-2"></i>Filter
-                </button>
-                <ul class="dropdown-menu dropdown-menu-glass" aria-labelledby="filterDropdown">
-                    <li><a class="dropdown-item" href="#">All Categories</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#">Science</a></li>
-                    <li><a class="dropdown-item" href="#">History</a></li>
-                    <li><a class="dropdown-item" href="#">Technology</a></li>
-                </ul>
+    <!-- Header with Search and Filters -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="display-5 fw-bold mb-0 gradient-text">Available Quizzes</h2>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-primary btn-glow">
+                        <i class="bi bi-plus-circle me-2"></i>Create Quiz
+                    </a>
+                {% endif %}
             </div>
-            <div class="dropdown">
-                <button class="btn btn-glass dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-sort-down-alt me-2"></i>Sort
-                </button>
-                <ul class="dropdown-menu dropdown-menu-glass" aria-labelledby="sortDropdown">
-                    <li><a class="dropdown-item" href="#">Newest First</a></li>
-                    <li><a class="dropdown-item" href="#">Most Popular</a></li>
-                    <li><a class="dropdown-item" href="#">Difficulty</a></li>
-                </ul>
+            
+            <!-- Search and Filter Bar -->
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" name="search" 
+                               value="{{ search_query }}" placeholder="Search quizzes...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.slug }}" {% if category_filter == category.slug %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="difficulty">
+                        <option value="">All Difficulties</option>
+                        <option value="EASY" {% if difficulty_filter == 'EASY' %}selected{% endif %}>Easy</option>
+                        <option value="MEDIUM" {% if difficulty_filter == 'MEDIUM' %}selected{% endif %}>Medium</option>
+                        <option value="HARD" {% if difficulty_filter == 'HARD' %}selected{% endif %}>Hard</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="sort">
+                        <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title A-Z</option>
+                        <option value="-total_attempts" {% if sort_by == '-total_attempts' %}selected{% endif %}>Most Popular</option>
+                        <option value="-average_score" {% if sort_by == '-average_score' %}selected{% endif %}>Highest Rated</option>
+                        <option value="difficulty" {% if sort_by == 'difficulty' %}selected{% endif %}>Difficulty</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Daily Challenge Section -->
+    {% if daily_challenge and daily_challenge.quiz %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card-glass p-4 rounded-4 border-warning border-2">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning text-dark me-2">
+                                <i class="bi bi-star-fill me-1"></i>Daily Challenge
+                            </span>
+                            <span class="badge bg-primary bg-opacity-20 text-primary">
+                                +{{ daily_challenge.bonus_points }} Bonus Points
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-2">{{ daily_challenge.quiz.title }}</h4>
+                        <p class="text-muted mb-0">{{ daily_challenge.quiz.description|truncatechars:120 }}</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{% url 'quizzes:daily_challenge' %}" class="btn btn-warning btn-glow">
+                            <i class="bi bi-play-fill me-1"></i>Take Challenge
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    {% endif %}
 
     {% if quizzes %}
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
         {% for quiz in quizzes %}
         <div class="col">
-            <div class="card h-100 card-glass hover-scale">
-                <div class="card-header position-relative">
-                    <span class="badge bg-primary bg-opacity-10 text-primary position-absolute top-0 end-0 m-2">
+            <div class="quiz-card h-100 hover-lift" data-category="{{ quiz.category.slug|default:'general' }}">
+                <div class="quiz-card-header">
+                    <div class="category-badge category-{{ quiz.category.color|default:'primary' }}">
+                        <i class="{{ quiz.category.icon|default:'bi-book' }} me-1"></i>
+                        {{ quiz.category.name|default:"General" }}
+                    </div>
+                    <div class="difficulty-badge difficulty-{{ quiz.difficulty|lower }}">
+                        <i class="bi bi-speedometer2 me-1"></i>
                         {{ quiz.get_difficulty_display }}
-                    </span>
-                    <div class="d-flex align-items-center">
-                        <div class="avatar avatar-sm me-2">
-                            {{ quiz.created_by.username|slice:":1"|upper }}
-                        </div>
-                        <div>
-                            <small class="text-muted">Created by</small>
-                            <h6 class="mb-0">{{ quiz.created_by.username }}</h6>
-                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge bg-secondary bg-opacity-10 text-secondary">
-                            {{ quiz.category.name|default:"General" }}
-                        </span>
-                        <span class="text-muted small">
-                            <i class="bi bi-question-circle-fill me-1"></i> {{ quiz.questions.count }}
-                        </span>
+                
+                <div class="quiz-card-body">
+                    <div class="quiz-avatar">
+                        {{ quiz.created_by.username|slice:":2"|upper }}
                     </div>
                     
-                    <h4 class="card-title fw-bold mb-3 clamp-2-lines">{{ quiz.title }}</h4>
-                    
-                    <p class="card-text text-muted clamp-3-lines">
-                        {{ quiz.description|default:"Test your knowledge with this challenging quiz." }}
+                    <h5 class="quiz-title">{{ quiz.title }}</h5>
+                    <p class="quiz-description">
+                        {{ quiz.description|default:"Test your knowledge with this engaging quiz!"|truncatechars:80 }}
                     </p>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="text-muted small">
-                            <i class="bi bi-calendar me-1"></i> {{ quiz.created_at|date:"M d, Y" }}
-                        </span>
-                        <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-primary btn-sm btn-glow">
-                            Start Quiz <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
+                    <div class="quiz-stats">
+                        <div class="stat-item">
+                            <i class="bi bi-question-circle text-primary"></i>
+                            <span>{{ quiz.question_count }} questions</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="bi bi-clock text-warning"></i>
+                            <span>{{ quiz.time_limit }} min</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="bi bi-award text-success"></i>
+                            <span>{{ quiz.points_reward }} pts</span>
+                        </div>
                     </div>
+                    
+                    {% if quiz.total_attempts > 0 %}
+                    <div class="quiz-metrics">
+                        <div class="metric">
+                            <span class="metric-value">{{ quiz.completion_rate }}%</span>
+                            <span class="metric-label">Completion</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">{{ quiz.total_attempts }}</span>
+                            <span class="metric-label">Attempts</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">{{ quiz.average_score|floatformat:1 }}%</span>
+                            <span class="metric-label">Avg Score</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="quiz-card-footer">
+                    <div class="quiz-meta">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ quiz.created_at|date:"M d, Y" }}
+                        </small>
+                        {% if quiz.quiz_type == 'DAILY' %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-star-fill me-1"></i>Daily
+                            </span>
+                        {% elif quiz.quiz_type == 'FEATURED' %}
+                            <span class="badge bg-info">
+                                <i class="bi bi-gem me-1"></i>Featured
+                            </span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-quiz-start">
+                        <i class="bi bi-play-fill me-1"></i>Start Quiz
+                    </a>
                 </div>
             </div>
         </div>
@@ -123,140 +218,294 @@
 </div>
 
 <style>
-    /* Custom Styles for the Quiz Listing */
-    :root {
-        --glass-bg: rgba(255, 255, 255, 0.08);
-        --glass-border: rgba(255, 255, 255, 0.2);
-        --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        --transition-all: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-    
-    .gradient-text {
-        background: linear-gradient(90deg, #4361ee, #4cc9f0);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-    
-    .card-glass {
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        box-shadow: var(--glass-shadow);
+    /* Modern Colorful Quiz Cards */
+    .quiz-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         overflow: hidden;
-        transition: var(--transition-all);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
     }
     
-    .dropdown-menu-glass {
-        background: rgba(255, 255, 255, 0.9);
+    .quiz-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: height 0.3s ease;
+    }
+    
+    .quiz-card:hover::before {
+        height: 6px;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .quiz-card-header {
+        padding: 1.5rem 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .category-badge {
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 2px solid;
         backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
     }
     
-    .btn-glass {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--light-color);
+    .category-primary {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        border-color: rgba(13, 110, 253, 0.3);
     }
     
-    .btn-glass:hover {
-        background: rgba(255, 255, 255, 0.2);
+    .category-success {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border-color: rgba(25, 135, 84, 0.3);
     }
     
-    .hover-scale:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    .category-info {
+        background: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+        border-color: rgba(13, 202, 240, 0.3);
     }
     
-    .btn-glow {
-        box-shadow: 0 0 10px rgba(67, 97, 238, 0.3);
+    .category-warning {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border-color: rgba(255, 193, 7, 0.3);
     }
     
-    .btn-glow:hover {
-        box-shadow: 0 0 20px rgba(67, 97, 238, 0.5);
+    .category-secondary {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border-color: rgba(108, 117, 125, 0.3);
     }
     
-    .avatar {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: var(--primary-color);
-        color: white;
+    .difficulty-badge {
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
         font-weight: 600;
     }
     
-    .clamp-2-lines {
+    .difficulty-easy {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    
+    .difficulty-medium {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+    
+    .difficulty-hard {
+        background: linear-gradient(135deg, #ef4444, #f87171);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    
+    .quiz-card-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .quiz-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin: 0 auto 1rem;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .quiz-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+        height: 2.6em;
+        overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        overflow: hidden;
     }
     
-    .clamp-3-lines {
+    .quiz-description {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        height: 4.5em;
+        overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
-        overflow: hidden;
     }
     
-    .empty-state {
+    .quiz-stats {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 50vh;
+        justify-content: space-around;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 12px;
+        border: 1px solid rgba(226, 232, 240, 0.5);
     }
     
-    .empty-state-content {
-        max-width: 500px;
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.85rem;
+    }
+    
+    .stat-item i {
+        font-size: 1.2rem;
+    }
+    
+    .quiz-metrics {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: rgba(59, 130, 246, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+    
+    .metric {
+        text-align: center;
+    }
+    
+    .metric-value {
+        display: block;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #3b82f6;
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .quiz-card-footer {
+        padding: 1rem 1.5rem 1.5rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+        background: rgba(248, 250, 252, 0.3);
+    }
+    
+    .quiz-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-quiz-start {
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 24px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         width: 100%;
     }
     
-    .icon-container {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
+    .btn-quiz-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        color: white;
     }
     
-    .pagination-glass .page-link {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--light-color);
-    }
-    
-    .pagination-glass .page-item.active .page-link {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+    .hover-lift {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
     /* Responsive adjustments */
     @media (max-width: 768px) {
-        .d-flex.justify-content-between.align-items-center.mb-5 {
+        .quiz-card-header {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
+            gap: 10px;
         }
         
-        .d-flex.gap-3 {
-            width: 100%;
-            justify-content: space-between;
+        .quiz-stats {
+            flex-direction: column;
+            gap: 8px;
         }
         
-        .dropdown {
-            width: 48%;
+        .stat-item {
+            flex-direction: row;
+            justify-content: center;
         }
+    }
+    
+    /* Animation for page load */
+    .quiz-card {
+        animation: slideInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    
+    .quiz-card:nth-child(1) { animation-delay: 0.1s; }
+    .quiz-card:nth-child(2) { animation-delay: 0.2s; }
+    .quiz-card:nth-child(3) { animation-delay: 0.3s; }
+    .quiz-card:nth-child(4) { animation-delay: 0.4s; }
+    .quiz-card:nth-child(5) { animation-delay: 0.5s; }
+    .quiz-card:nth-child(6) { animation-delay: 0.6s; }
+    .quiz-card:nth-child(7) { animation-delay: 0.7s; }
+    .quiz-card:nth-child(8) { animation-delay: 0.8s; }
+    
+    @keyframes slideInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Other existing styles */
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
     }
 </style>
 

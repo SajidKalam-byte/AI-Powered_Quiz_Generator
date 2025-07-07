@@ -1,76 +1,152 @@
 {% extends dashboard_template %}
 {% load custom_filters %}  
 {% block content %}
-<div class="container-fluid">
-    <div class="card-clean p-4 mb-4 fade-in">
-        <div class="row align-items-start">
-            <div class="col-lg-8">
-                <h1 class="h2 fw-bold text-primary mb-3">{{ quiz.title }}</h1>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="badge badge-primary">
-                        <i class="bi bi-tag-fill me-1"></i>{{ quiz.category.name }}
-                    </span>
-                    <span class="badge badge-clean">
-                        <i class="bi bi-speedometer2 me-1"></i>{{ quiz.get_difficulty_display }}
-                    </span>
-                    <span class="badge badge-clean">
-                        <i class="bi bi-question-circle-fill me-1"></i>{{ quiz.questions.count }} Questions
-                    </span>
-                </div>
-                <p class="text-muted mb-3">
-                    <i class="bi bi-calendar me-1"></i>Created on {{ quiz.created_at|date:"F d, Y" }}
-                </p>
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="glass-morphism p-4 rounded-4 text-center">
+                <h1 class="display-5 fw-bold gradient-text mb-3">{{ quiz.title }}</h1>
+                <p class="lead text-muted mb-0">{{ quiz.description|default:"Detailed quiz overview" }}</p>
             </div>
-            
-            <div class="col-lg-4 text-lg-end">
-                <div class="d-flex align-items-center justify-content-lg-end gap-2 mb-3">
-                    <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
-                        {{ quiz.created_by.username|slice:":2"|upper }}
+        </div>
+    </div>
+
+    <!-- Quiz Details Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card-glass rounded-4 overflow-hidden">
+                <div class="card-header bg-primary bg-opacity-10 border-0 p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex flex-wrap gap-3 mb-3">
+                                <span class="badge bg-primary text-white px-3 py-2 rounded-pill">
+                                    <i class="bi bi-bookmark-fill me-1"></i>{{ quiz.category.name }}
+                                </span>
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                                    <i class="bi bi-speedometer2 me-1"></i>{{ quiz.get_difficulty_display }}
+                                </span>
+                                <span class="badge bg-info text-white px-3 py-2 rounded-pill">
+                                    <i class="bi bi-collection me-1"></i>{{ quiz.get_quiz_type_display }}
+                                </span>
+                                <span class="badge bg-success text-white px-3 py-2 rounded-pill">
+                                    <i class="bi bi-question-circle-fill me-1"></i>{{ quiz.questions.count }} Questions
+                                </span>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-4 text-muted">
+                                <span><i class="bi bi-calendar3 me-2"></i>{{ quiz.created_at|date:"F d, Y" }}</span>
+                                {% if quiz.time_limit %}
+                                <span><i class="bi bi-clock me-2"></i>{{ quiz.time_limit }} minutes</span>
+                                {% endif %}
+                                {% if quiz.points_reward %}
+                                <span><i class="bi bi-award me-2"></i>{{ quiz.points_reward }} points</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="d-flex align-items-center justify-content-lg-end gap-3 mb-3">
+                                <div class="user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px; font-size: 1.2rem; font-weight: bold;">
+                                    {{ quiz.created_by.username|slice:":2"|upper }}
+                                </div>
+                                <div class="text-start">
+                                    <small class="text-muted d-block">Created by</small>
+                                    <strong class="text-dark">{{ quiz.created_by.username }}</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                                {% if quiz.created_by == user %}
+                                <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Question
+                                </a>
+                                {% endif %}
+                                
+                                {% if quiz.questions.count > 0 %}
+                                <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-primary btn-glow">
+                                    <i class="bi bi-play-fill me-2"></i>Take Quiz
+                                </a>
+                                {% else %}
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-exclamation-triangle me-2"></i>No Questions Yet
+                                </button>
+                                {% endif %}
+                <div class="card-body p-4">
+                    {% if quiz.description %}
+                    <div class="mb-4">
+                        <h5 class="fw-semibold text-dark mb-3">
+                            <i class="bi bi-card-text me-2 text-primary"></i>Description
+                        </h5>
+                        <p class="text-muted">{{ quiz.description }}</p>
                     </div>
-                    <div class="text-start">
-                        <small class="text-muted d-block">Created by</small>
-                        <strong>{{ quiz.created_by.username }}</strong>
-                    </div>
-                </div>
-                
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                    {% if quiz.created_by == user %}
-                    <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-circle me-1"></i>Add Question
-                    </a>
                     {% endif %}
                     
-                    <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-primary">
-                        <i class="bi bi-play-fill me-1"></i>Take Quiz
-                    </a>
+                    {% if tag_list %}
+                    <div class="mb-4">
+                        <h5 class="fw-semibold text-dark mb-3">
+                            <i class="bi bi-tags me-2 text-primary"></i>Tags
+                        </h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for tag in tag_list %}
+                            {% if tag|trim %}
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                #{{ tag|trim }}
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center py-3">
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary me-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Quizzes
+                        </a>
+                        {% if quiz.questions.count > 0 %}
+                        <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-primary btn-lg btn-glow">
+                            <i class="bi bi-play-fill me-2"></i>Start Quiz Now
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="h4 fw-bold text-primary mb-0">Questions</h3>
-        <span class="text-muted">{{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }}</span>
+
+    <!-- Questions Section -->
+    {% if quiz.questions.exists %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h4 fw-bold gradient-text mb-0">
+                    <i class="bi bi-list-check me-2"></i>Questions Preview
+                </h3>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                    {{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }}
+                </span>
+            </div>
+        </div>
     </div>
     
-    {% if quiz.questions.exists %}
     <div class="row g-4">
         {% for question in quiz.questions.all %}
         <div class="col-12">
-            <div class="card-clean p-4 slide-in" style="animation-delay: {{ forloop.counter0|add:1|mul:0.1 }}s">
+            <div class="card-glass p-4 rounded-4" style="animation: slideInUp 0.6s ease {{ forloop.counter0|add:1|mul:0.1 }}s both;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
-                        <span class="badge badge-primary fs-6">{{ forloop.counter }}</span>
-                        <h5 class="mb-0">Question {{ forloop.counter }}</h5>
+                        <span class="badge bg-primary text-white fs-6 px-3 py-2 rounded-pill">{{ forloop.counter }}</span>
+                        <h5 class="mb-0 text-dark">Question {{ forloop.counter }}</h5>
                     </div>
                     {% if quiz.created_by == user %}
-                    <span class="badge bg-success">
-                        <i class="bi bi-check-circle me-1"></i>{{ question.correct_option }}
+                    <span class="badge bg-success text-white px-3 py-2 rounded-pill">
+                        <i class="bi bi-check-circle me-1"></i>Correct: {{ question.correct_option }}
                     </span>
                     {% endif %}
                 </div>
                 
-                <p class="lead mb-4">{{ question.text }}</p>
+                <p class="lead mb-4 text-dark">{{ question.text }}</p>
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -113,94 +189,149 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-5">
-        <div class="card-clean p-5">
-            <div class="mb-4">
-                <i class="bi bi-question-lg text-muted" style="font-size: 4rem;"></i>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="card-glass p-5 rounded-4">
+                    <div class="mb-4">
+                        <i class="bi bi-question-lg text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="h4 mb-3 text-dark">No Questions Yet</h3>
+                    <p class="text-muted mb-4">This quiz doesn't have any questions yet. Add some questions to make it playable!</p>
+                    {% if quiz.created_by == user %}
+                    <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-primary btn-lg btn-glow">
+                        <i class="bi bi-plus-circle me-2"></i>Add First Question
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-            <h3 class="h4 mb-3">No Questions Yet</h3>
-            <p class="text-muted mb-4">This quiz doesn't have any questions yet.</p>
-            {% if quiz.created_by == user %}
-            <a href="{% url 'quizzes:add_question' quiz.id %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Add First Question
-            </a>
-            {% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 
 <style>
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .btn-glow {
+        box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-glow:hover {
+        box-shadow: 0 0 30px rgba(13, 110, 253, 0.5);
+        transform: translateY(-2px);
+    }
+
     .option-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 1rem;
+        background: rgba(248, 249, 250, 0.8);
+        border: 2px solid rgba(222, 226, 230, 0.8);
+        border-radius: 15px;
+        padding: 1.2rem;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         gap: 1rem;
+        cursor: default;
     }
     
     .option-card:hover {
-        background: var(--hover-bg);
+        background: rgba(233, 236, 239, 0.9);
         transform: translateY(-2px);
-        box-shadow: var(--card-shadow-hover);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     }
     
     .correct-option {
-        background: var(--option-correct);
-        border-color: var(--success-color);
+        background: rgba(25, 135, 84, 0.1) !important;
+        border-color: #198754 !important;
         border-width: 2px;
     }
     
+    .correct-option:hover {
+        background: rgba(25, 135, 84, 0.15) !important;
+    }
+    
     .option-letter {
-        width: 32px;
-        height: 32px;
-        background: var(--primary-color);
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
+        font-size: 1.1rem;
         flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
     }
     
     .correct-option .option-letter {
-        background: var(--success-color);
+        background: linear-gradient(135deg, #198754, #20c997);
+        box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
     }
     
     .option-text {
         flex: 1;
         font-weight: 500;
+        font-size: 1rem;
+        color: #212529;
     }
     
     .explanation-card {
-        background: var(--quiz-accent);
-        border: 1px solid var(--primary-color);
-        border-radius: 12px;
-        padding: 1rem;
+        background: rgba(255, 243, 205, 0.8);
+        border: 2px solid rgba(255, 193, 7, 0.3);
+        border-radius: 15px;
+        padding: 1.2rem;
         margin-top: 1rem;
     }
     
-    [data-bs-theme="dark"] .explanation-card {
-        background: var(--quiz-accent);
-        border-color: var(--primary-color);
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     
     @media (max-width: 768px) {
-        .row.align-items-start {
+        .row.align-items-center {
             flex-direction: column;
+            text-align: center;
         }
         
-        .col-lg-4.text-lg-end {
-            text-align: left !important;
-            margin-top: 1rem;
+        .col-lg-4 {
+            margin-top: 2rem;
         }
         
-        .d-flex.justify-content-lg-end {
-            justify-content: flex-start !important;
+        .option-card {
+            margin-bottom: 1rem;
+        }
+        
+        .display-5 {
+            font-size: 2rem;
         }
     }
 </style>

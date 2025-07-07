@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Avg, Count, Max
 from django.utils import timezone
+from django.conf import settings
 from .models import CustomUser
 from .decorators import role_required
 from quizzes.models import Quiz, UserQuizAttempt
@@ -82,15 +83,13 @@ def teacher_register(request):
 
 
 def user_login(request):
-    # If the user is trying to access the admin panel, redirect to the default admin login
     next_url = request.GET.get('next', '')
-    if next_url.startswith('/admin/'):
-        return redirect('/admin/login/')
-
+    
+    # Check if already authenticated
     if request.user.is_authenticated:
-        # If user is already authenticated, redirect to the 'next' parameter or dashboard
-        next_url = next_url or 'users:dashboard'
-        return redirect(next_url)
+        if next_url.startswith('/admin/'):
+            return redirect(next_url)
+        return redirect(next_url or 'users:dashboard')
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -104,21 +103,39 @@ def user_login(request):
 
         if user:
             login(request, user)
-            # Set session expiry (e.g., 30 minutes of inactivity)
-            request.session.set_expiry(1800)
+            # Set session expiry
+            request.session.set_expiry(3600)  # 1 hour
             request.session['last_activity'] = str(request.session.get_expiry_date())
-            messages.success(request, f"Welcome, {user.full_name}!")
-            # Redirect to the 'next' parameter or dashboard
-            next_url = next_url or 'users:dashboard'
-            return redirect(next_url)
+            
+            messages.success(request, f"Welcome back, {user.full_name or user.username}!")
+            
+            # Handle admin redirect
+            if next_url.startswith('/admin/'):
+                if user.is_staff or user.is_superuser:
+                    return redirect(next_url)
+                else:
+                    messages.error(request, "You don't have permission to access the admin panel.")
+                    return redirect('users:dashboard')
+            
+            # Regular dashboard redirect
+            return redirect(next_url or 'users:dashboard')
         else:
-            messages.error(request, "Invalid credentials.")
-            # Preserve 'next' parameter in case of login failure
+            messages.error(request, "Invalid username or password.")
             if next_url:
                 return redirect(f"{reverse('users:login')}?next={next_url}")
             return redirect('users:login')
 
-    return render(request, 'users/login.html')
+    # Add convenience login options for development
+    context = {
+        'next': next_url,
+        'demo_accounts': [
+            {'username': 'admin', 'role': 'Administrator', 'description': 'Full access to admin panel'},
+            {'username': 'student1', 'role': 'Student', 'description': 'Student dashboard access'},
+            {'username': 'teacher1', 'role': 'Teacher', 'description': 'Teacher dashboard access'},
+        ] if settings.DEBUG else []
+    }
+    
+    return render(request, 'users/login.html', context)
 
 
 def user_logout(request):

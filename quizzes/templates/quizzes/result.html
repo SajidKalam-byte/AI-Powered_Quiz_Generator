@@ -2,70 +2,142 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Results Header -->
-    <div class="card-clean p-4 mb-4 fade-in">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="h3 fw-bold text-primary mb-3">Quiz Results</h1>
-                <h2 class="h4 mb-4">{{ quiz.title }}</h2>
-                
-                <div class="d-flex align-items-center gap-4">
-                    <div class="score-circle">
-                        <svg width="120" height="120" class="score-svg">
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--card-border)" stroke-width="8"/>
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary-color)" stroke-width="8" 
-                                    stroke-dasharray="314" stroke-dashoffset="314" class="score-progress"/>
-                        </svg>
-                        <div class="score-percent">{{ score|div:total|mul:100|floatformat:0 }}%</div>
-                    </div>
-                    
-                    <div class="score-details">
-                        <div class="score-stat text-success">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            <span>{{ score }} Correct</span>
-                        </div>
-                        <div class="score-stat text-danger">
-                            <i class="bi bi-x-circle-fill me-2"></i>
-                            <span>{{ total|sub:score }} Incorrect</span>
-                        </div>
-                        <div class="score-stat text-primary">
-                            <i class="bi bi-question-circle-fill me-2"></i>
-                            <span>{{ total }} Total Questions</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 text-lg-end">
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary">
-                        <i class="bi bi-arrow-left me-1"></i>Back to Quizzes
-                    </a>
-                    <button class="btn btn-outline-primary" onclick="shareResults()">
-                        <i class="bi bi-share me-1"></i>Share Results
-                    </button>
-                </div>
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="glass-morphism p-4 rounded-4 text-center">
+                <h1 class="display-5 fw-bold gradient-text mb-3">
+                    <i class="bi bi-trophy-fill me-3"></i>Quiz Results
+                </h1>
+                <p class="lead text-muted mb-0">{{ quiz.title }}</p>
             </div>
         </div>
     </div>
 
+    <!-- Results Summary -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10">
+            <div class="card-glass rounded-4 overflow-hidden">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex align-items-center gap-5">
+                                <!-- Score Circle -->
+                                <div class="score-container">
+                                    <div class="score-circle">
+                                        <svg width="120" height="120" class="score-svg">
+                                            <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                            <circle cx="60" cy="60" r="50" fill="none" stroke="#0d6efd" stroke-width="8" 
+                                                    stroke-dasharray="314" stroke-dashoffset="314" class="score-progress"
+                                                    data-score="{{ score|div:total|mul:100|floatformat:0 }}"/>
+                                        </svg>
+                                        <div class="score-percent">{{ score|div:total|mul:100|floatformat:0 }}%</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Score Details -->
+                                <div class="score-details">
+                                    <div class="score-stat mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="stat-icon bg-success">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="mb-0 text-success">{{ score }}</h4>
+                                                <small class="text-muted">Correct Answers</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="score-stat mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="stat-icon bg-danger">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="mb-0 text-danger">{{ total|sub:score }}</h4>
+                                                <small class="text-muted">Incorrect Answers</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="score-stat">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="stat-icon bg-primary">
+                                                <i class="bi bi-question-circle-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="mb-0 text-primary">{{ total }}</h4>
+                                                <small class="text-muted">Total Questions</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="text-center">
+                                {% if score|div:total|mul:100 >= 80 %}
+                                <div class="result-badge excellent mb-3">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>Excellent!</span>
+                                </div>
+                                <p class="text-muted">Outstanding performance!</p>
+                                {% elif score|div:total|mul:100 >= 60 %}
+                                <div class="result-badge good mb-3">
+                                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                                    <span>Good Job!</span>
+                                </div>
+                                <p class="text-muted">Well done, keep it up!</p>
+                                {% else %}
+                                <div class="result-badge needs-improvement mb-3">
+                                    <i class="bi bi-arrow-up-circle-fill"></i>
+                                    <span>Keep Trying!</span>
+                                </div>
+                                <p class="text-muted">Practice makes perfect!</p>
+                                {% endif %}
+                                
+                                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-glow">
+                                        <i class="bi bi-arrow-left me-2"></i>Back to Quizzes
+                                    </a>
+                                    <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Retake Quiz
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Questions Review -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="h4 fw-bold text-primary mb-0">Review Your Answers</h3>
-        <span class="text-muted">{{ questions|length }} question{{ questions|length|pluralize }}</span>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="h4 fw-bold gradient-text mb-0">
+                    <i class="bi bi-list-check me-2"></i>Review Your Answers
+                </h3>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                    {{ questions|length }} question{{ questions|length|pluralize }}
+                </span>
+            </div>
+        </div>
     </div>
     
     <div class="results-list">
         {% for question in questions %}
-        <div class="result-card card-clean p-4 mb-4 slide-in {% if answers|get_item:question.id == question.correct_option %}correct-result{% else %}incorrect-result{% endif %}" 
-             style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+        <div class="result-card card-glass p-4 mb-4 rounded-4 {% if answers|get_item:question.id == question.correct_option %}correct-result{% else %}incorrect-result{% endif %}" 
+             style="animation: slideInUp 0.6s ease {{ forloop.counter0|add:1|mul:0.1 }}s both;">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div class="d-flex align-items-center gap-3">
                     <span class="question-number">{{ forloop.counter }}</span>
-                    <h4 class="h6 mb-0">Question {{ forloop.counter }}</h4>
+                    <h4 class="h6 mb-0 text-dark">Question {{ forloop.counter }}</h4>
                 </div>
-                <span class="badge {% if answers|get_item:question.id == question.correct_option %}bg-success{% else %}bg-danger{% endif %}">
+                <span class="badge {% if answers|get_item:question.id == question.correct_option %}bg-success{% else %}bg-danger{% endif %} text-white px-3 py-2 rounded-pill">
                     {% if answers|get_item:question.id == question.correct_option %}
                     <i class="bi bi-check-circle-fill me-1"></i>Correct
                     {% else %}
@@ -74,41 +146,58 @@
                 </span>
             </div>
             
-            <p class="question-text lead mb-4">{{ question.text }}</p>
+            <p class="question-text lead mb-4 text-dark">{{ question.text }}</p>
             
-            <div class="row g-3 mb-4">
+            <div class="row g-4 mb-4">
                 <div class="col-md-6">
                     <div class="answer-section">
-                        <h6 class="section-title">Your Answer</h6>
+                        <h6 class="section-title">
+                            <i class="bi bi-person-fill me-2 text-primary"></i>Your Answer
+                        </h6>
                         <div class="user-answer {% if answers|get_item:question.id == question.correct_option %}correct{% else %}incorrect{% endif %}">
                             <span class="option-letter-small">{{ answers|get_item:question.id|default:"?" }}</span>
-                            <span>{{ answers|get_item:question.id|default:"Not answered" }}</span>
+                            <span>
+                                {% if answers|get_item:question.id == 'A' %}{{ question.option_a }}
+                                {% elif answers|get_item:question.id == 'B' %}{{ question.option_b }}
+                                {% elif answers|get_item:question.id == 'C' %}{{ question.option_c }}
+                                {% elif answers|get_item:question.id == 'D' %}{{ question.option_d }}
+                                {% else %}Not answered{% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-md-6">
                     <div class="answer-section">
-                        <h6 class="section-title">Correct Answer</h6>
+                        <h6 class="section-title">
+                            <i class="bi bi-check-circle-fill me-2 text-success"></i>Correct Answer
+                        </h6>
                         <div class="correct-answer">
                             <span class="option-letter-small">{{ question.correct_option }}</span>
-                            <span>{{ question.correct_option }}</span>
+                            <span>
+                                {% if question.correct_option == 'A' %}{{ question.option_a }}
+                                {% elif question.correct_option == 'B' %}{{ question.option_b }}
+                                {% elif question.correct_option == 'C' %}{{ question.option_c }}
+                                {% else %}{{ question.option_d }}{% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
             
             {% if question.explanation %}
-            <div class="explanation-section">
+            <div class="explanation-section bg-warning bg-opacity-10 p-3 rounded-3 mb-4">
                 <h6 class="section-title">
                     <i class="bi bi-lightbulb-fill text-warning me-2"></i>Explanation
                 </h6>
-                <p class="mb-0">{{ question.explanation }}</p>
+                <p class="mb-0 text-dark">{{ question.explanation }}</p>
             </div>
             {% endif %}
             
-            <div class="options-section mt-4">
-                <h6 class="section-title">All Options</h6>
+            <div class="options-section">
+                <h6 class="section-title">
+                    <i class="bi bi-list-ul me-2 text-primary"></i>All Options
+                </h6>
                 <div class="row g-2">
                     <div class="col-md-6">
                         <div class="mini-option {% if question.correct_option == 'A' %}correct{% endif %} {% if answers|get_item:question.id == 'A' %}user-selected{% endif %}">
@@ -188,16 +277,122 @@
     
     .correct-result {
         border-left-color: var(--success-color);
+</div>
+
+<style>
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
-    
-    .incorrect-result {
-        border-left-color: var(--danger-color);
+
+    .card-glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
-    
+
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .btn-glow {
+        box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-glow:hover {
+        box-shadow: 0 0 30px rgba(13, 110, 253, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Score Circle */
+    .score-container {
+        position: relative;
+    }
+
+    .score-circle {
+        position: relative;
+        display: inline-block;
+    }
+
+    .score-percent {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+
+    .score-progress {
+        transition: stroke-dashoffset 2s ease-in-out;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+
+    /* Score Stats */
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    /* Result Badges */
+    .result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 25px;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .result-badge.excellent {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #8b6914;
+    }
+
+    .result-badge.good {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .result-badge.needs-improvement {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: #8b5a00;
+    }
+
+    /* Questions Review */
+    .result-card {
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .result-card.correct-result {
+        border-left-color: #28a745;
+    }
+
+    .result-card.incorrect-result {
+        border-left-color: #dc3545;
+    }
+
     .question-number {
-        width: 32px;
-        height: 32px;
-        background: var(--primary-color);
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
         color: white;
         border-radius: 50%;
         display: flex;
@@ -205,47 +400,47 @@
         justify-content: center;
         font-weight: bold;
         flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
     }
-    
+
     .section-title {
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-secondary);
-        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
         font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 8px;
     }
-    
+
     .user-answer, .correct-answer {
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
+        padding: 12px 16px;
+        border-radius: 12px;
         font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 12px;
+        border: 2px solid;
     }
-    
+
     .user-answer.correct {
-        background: var(--option-correct);
-        color: var(--success-color);
-        border: 1px solid var(--success-color);
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border-color: #198754;
     }
-    
+
     .user-answer.incorrect {
-        background: var(--option-incorrect);
-        color: var(--danger-color);
-        border: 1px solid var(--danger-color);
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border-color: #dc3545;
     }
-    
+
     .correct-answer {
-        background: var(--option-correct);
-        color: var(--success-color);
-        border: 1px solid var(--success-color);
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border-color: #198754;
     }
-    
+
     .option-letter-small {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         background: currentColor;
         color: white;
         border-radius: 50%;
@@ -253,127 +448,125 @@
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 0.875rem;
+        font-size: 0.9rem;
         flex-shrink: 0;
     }
-    
-    .explanation-section {
-        background: var(--quiz-accent);
-        border: 1px solid var(--primary-color);
-        border-radius: 12px;
-        padding: 1rem;
-        margin-top: 1rem;
-    }
-    
+
     .mini-option {
-        background: var(--bg-secondary);
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
-        padding: 0.5rem;
+        background: rgba(248, 249, 250, 0.8);
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 8px 12px;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
+        gap: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
     }
-    
+
     .mini-option.correct {
-        background: var(--option-correct);
-        border-color: var(--success-color);
+        background: rgba(25, 135, 84, 0.1);
+        border-color: #198754;
+        color: #198754;
     }
-    
+
     .mini-option.user-selected:not(.correct) {
-        background: var(--option-incorrect);
-        border-color: var(--danger-color);
+        background: rgba(220, 53, 69, 0.1);
+        border-color: #dc3545;
+        color: #dc3545;
     }
-    
+
     .option-letter-mini {
-        width: 20px;
-        height: 20px;
-        background: var(--primary-color);
+        width: 24px;
+        height: 24px;
+        background: #6c757d;
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         flex-shrink: 0;
     }
-    
+
     .mini-option.correct .option-letter-mini {
-        background: var(--success-color);
+        background: #198754;
     }
-    
+
     .mini-option.user-selected:not(.correct) .option-letter-mini {
-        background: var(--danger-color);
+        background: #dc3545;
     }
-    
+
     .option-text-mini {
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     @media (max-width: 768px) {
         .row.align-items-center {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 1.5rem;
+            text-align: center;
         }
-        
-        .col-lg-4.text-lg-end {
-            text-align: left !important;
-            width: 100%;
-        }
-        
-        .d-flex.align-items-center.gap-4 {
+
+        .d-flex.align-items-center.gap-5 {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 1.5rem;
+            gap: 2rem;
         }
-        
-        .d-flex.justify-content-lg-end {
-            justify-content: flex-start !important;
-            width: 100%;
+
+        .score-details {
+            text-align: center;
+        }
+
+        .display-5 {
+            font-size: 2rem;
         }
     }
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate the progress circle
-        const scorePercent = parseFloat("{{ score|div:total|mul:100|floatformat:0 }}");
-        const circumference = 2 * Math.PI * 50;
-        const offset = circumference - (scorePercent / 100) * circumference;
-        
-        const progressCircle = document.querySelector('.score-progress');
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate the progress circle
+    const scorePercent = parseFloat("{{ score|div:total|mul:100|floatformat:0 }}");
+    const circumference = 2 * Math.PI * 50;
+    const offset = circumference - (scorePercent / 100) * circumference;
+    
+    const progressCircle = document.querySelector('.score-progress');
+    if (progressCircle) {
         setTimeout(() => {
             progressCircle.style.strokeDashoffset = offset;
-            progressCircle.style.transition = 'stroke-dashoffset 1.5s ease-in-out';
         }, 500);
-    });
-    
-    function shareResults() {
-        const score = "{{ score }}";
-        const total = "{{ total }}";
-        const quizTitle = "{{ quiz.title }}";
-        const percentage = Math.round((score / total) * 100);
-        
-        const shareText = `I just scored ${percentage}% (${score}/${total}) on "${quizTitle}" quiz! 🎯`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'Quiz Results',
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            // Fallback to clipboard
-            navigator.clipboard.writeText(shareText + ' ' + window.location.href).then(() => {
-                alert('Results copied to clipboard!');
-            });
-        }
     }
+    
+    // Animate score counting
+    const scoreElement = document.querySelector('.score-percent');
+    if (scoreElement) {
+        let currentScore = 0;
+        const targetScore = scorePercent;
+        const increment = targetScore / 50;
+        
+        const countUp = setInterval(() => {
+            currentScore += increment;
+            if (currentScore >= targetScore) {
+                currentScore = targetScore;
+                clearInterval(countUp);
+            }
+            scoreElement.textContent = Math.round(currentScore) + '%';
+        }, 40);
+    }
+});
 </script>
 {% endblock %}

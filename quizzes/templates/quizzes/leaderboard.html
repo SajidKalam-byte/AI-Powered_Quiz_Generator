@@ -1,0 +1,273 @@
+{% extends dashboard_template %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="glass-morphism p-4 rounded-4 text-center">
+                <h1 class="display-4 fw-bold gradient-text mb-3">
+                    <i class="bi bi-trophy-fill me-3"></i>Leaderboard
+                </h1>
+                <p class="lead text-muted">Compete with fellow quiz enthusiasts and climb to the top!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-center">
+                <div class="btn-group" role="group" aria-label="Leaderboard periods">
+                    <a href="?period=DAILY" class="btn {% if current_period == 'DAILY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-calendar-day me-1"></i>Daily
+                    </a>
+                    <a href="?period=WEEKLY" class="btn {% if current_period == 'WEEKLY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-calendar-week me-1"></i>Weekly
+                    </a>
+                    <a href="?period=MONTHLY" class="btn {% if current_period == 'MONTHLY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-calendar-month me-1"></i>Monthly
+                    </a>
+                    <a href="?period=ALL_TIME" class="btn {% if current_period == 'ALL_TIME' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-infinity me-1"></i>All Time
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Content -->
+    <div class="row">
+        <div class="col-12">
+            {% if leaderboard and leaderboard.top_users %}
+                <!-- Top 3 Podium -->
+                <div class="row mb-5">
+                    {% for user in leaderboard.top_users|slice:":3" %}
+                        <div class="col-md-4 {% if user.rank == 1 %}order-md-2{% elif user.rank == 2 %}order-md-1{% else %}order-md-3{% endif %}">
+                            <div class="podium-card glass-morphism p-4 rounded-4 text-center mb-4">
+                                {% if user.rank == 1 %}
+                                    <div class="trophy-icon text-warning mb-3">
+                                        <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <div class="badge bg-warning text-dark mb-2">🥇 Champion</div>
+                                {% elif user.rank == 2 %}
+                                    <div class="trophy-icon text-secondary mb-3">
+                                        <i class="bi bi-award-fill" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                    <div class="badge bg-secondary mb-2">🥈 Runner-up</div>
+                                {% else %}
+                                    <div class="trophy-icon text-warning mb-3">
+                                        <i class="bi bi-award" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div class="badge bg-warning text-dark mb-2">🥉 Third Place</div>
+                                {% endif %}
+                                
+                                <div class="user-avatar-large mx-auto mb-3">
+                                    {{ user.username|slice:":2"|upper }}
+                                </div>
+                                
+                                <h5 class="fw-bold">{{ user.username }}</h5>
+                                <p class="text-primary fw-bold mb-2">{{ user.points }} points</p>
+                                <small class="text-muted">{{ user.quizzes_completed }} quizzes completed</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Full Rankings Table -->
+                <div class="card-glass rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col" class="ps-4">Rank</th>
+                                    <th scope="col">Player</th>
+                                    <th scope="col">Points</th>
+                                    <th scope="col">Quizzes</th>
+                                    <th scope="col">Avg Score</th>
+                                    <th scope="col">Badge</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in leaderboard.top_users %}
+                                <tr class="{% if user.user_id == request.user.id %}table-primary{% endif %}">
+                                    <td class="ps-4">
+                                        <span class="rank-badge rank-{{ user.rank }}">
+                                            {% if user.rank <= 3 %}
+                                                {% if user.rank == 1 %}🥇{% elif user.rank == 2 %}🥈{% else %}🥉{% endif %}
+                                            {% else %}
+                                                #{{ user.rank }}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-3">
+                                                {{ user.username|slice:":2"|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ user.username }}</div>
+                                                {% if user.user_id == request.user.id %}
+                                                    <small class="text-primary">You</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ user.points }} pts
+                                        </span>
+                                    </td>
+                                    <td>{{ user.quizzes_completed }}</td>
+                                    <td>{{ user.average_score }}%</td>
+                                    <td>
+                                        {% if user.rank <= 3 %}
+                                            <span class="badge bg-warning">Top Performer</span>
+                                        {% elif user.rank <= 10 %}
+                                            <span class="badge bg-success">Excellence</span>
+                                        {% elif user.rank <= 50 %}
+                                            <span class="badge bg-info">Active Player</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Period Info -->
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        Showing {{ current_period|lower }} leaderboard 
+                        {% if leaderboard.start_date == leaderboard.end_date %}
+                            for {{ leaderboard.start_date|date:"F d, Y" }}
+                        {% else %}
+                            from {{ leaderboard.start_date|date:"M d" }} to {{ leaderboard.end_date|date:"M d, Y" }}
+                        {% endif %}
+                        • Last updated: {{ leaderboard.last_updated|timesince }} ago
+                    </small>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state text-center py-5">
+                    <div class="glass-morphism p-5 rounded-4">
+                        <i class="bi bi-trophy text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h3 class="mb-3">No Rankings Available</h3>
+                        <p class="text-muted mb-4">Be the first to take a quiz and appear on the leaderboard!</p>
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-glow">
+                            <i class="bi bi-play-fill me-2"></i>Start Taking Quizzes
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Stats Card (if authenticated) -->
+    {% if request.user.is_authenticated and user_profile %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card-glass p-4 rounded-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-person-circle me-2"></i>Your Stats
+                </h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4 text-primary fw-bold">{{ user_profile.total_points }}</div>
+                            <small class="text-muted">Total Points</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4 text-success fw-bold">{{ user_profile.total_quizzes_completed }}</div>
+                            <small class="text-muted">Quizzes Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4 text-warning fw-bold">{{ user_profile.current_streak }}</div>
+                            <small class="text-muted">Current Streak</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4 text-info fw-bold">{{ user_profile.level }}</div>
+                            <small class="text-muted">Level</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.podium-card {
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.podium-card:hover {
+    transform: translateY(-5px);
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 30px;
+    font-weight: bold;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.trophy-icon {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+</style>
+{% endblock %}

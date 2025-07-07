@@ -113,12 +113,8 @@ def quiz_detail(request, quiz_id):
         attempts_left = quiz.max_attempts - user_attempts.count()
         can_attempt = attempts_left > 0
     
-    # Pre-split tags for the template
-    tag_list = quiz.tags.split(",") if quiz.tags else []
-
     context = {
         'quiz': quiz,
-        'tag_list': tag_list,
         'user_attempts': user_attempts,
         'can_attempt': can_attempt,
         'attempts_left': attempts_left,
@@ -126,7 +122,6 @@ def quiz_detail(request, quiz_id):
     }
     
     return render(request, 'quizzes/quiz_detail.html', context)
-
 
 # ==================== QUIZ TAKING ====================
 
@@ -231,7 +226,6 @@ def quiz_result(request, quiz_id, attempt_id):
     # Get detailed results
     questions = quiz.questions.all().order_by('order')
     results = []
-    answers = {}  # For template compatibility
     
     for question in questions:
         user_answer = attempt.answers.get(str(question.id), '')
@@ -243,22 +237,15 @@ def quiz_result(request, quiz_id, attempt_id):
             'is_correct': is_correct,
             'correct_answer': question.correct_option
         })
-        
-        # Store answers in the format expected by the template
-        answers[question.id] = user_answer
     
     context = {
         'quiz': quiz,
         'attempt': attempt,
         'results': results,
-        'questions': questions,
-        'answers': answers,
-        'score': attempt.score,
-        'total': questions.count(),
         'dashboard_template': get_dashboard_template(request.user)
     }
     
-    return render(request, 'quizzes/result.html', context)
+    return render(request, 'quizzes/quiz_result.html', context)
 
 # ==================== QUIZ CREATION ====================
 

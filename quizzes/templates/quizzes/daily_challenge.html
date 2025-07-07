@@ -1,0 +1,237 @@
+{% extends dashboard_template %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="glass-morphism p-4 rounded-4 text-center">
+                <h1 class="display-4 fw-bold gradient-text mb-3">
+                    <i class="bi bi-calendar-star-fill me-3"></i>Daily Challenge
+                </h1>
+                <p class="lead text-muted">Take on today's featured quiz and earn bonus points!</p>
+            </div>
+        </div>
+    </div>
+
+    {% if daily_challenge and daily_challenge.quiz %}
+        <!-- Challenge Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-glass rounded-4 overflow-hidden mb-5">
+                    <!-- Challenge Header -->
+                    <div class="card-header bg-primary bg-opacity-10 border-0 p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-warning text-dark me-2">
+                                        <i class="bi bi-star-fill me-1"></i>Daily Challenge
+                                    </span>
+                                    <span class="badge bg-primary bg-opacity-20 text-primary">
+                                        +{{ daily_challenge.bonus_points }} Bonus Points
+                                    </span>
+                                </div>
+                                <h3 class="fw-bold mb-1">{{ daily_challenge.quiz.title }}</h3>
+                                <p class="text-muted mb-0">{{ daily_challenge.date|date:"F d, Y" }}</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="challenge-stats">
+                                    <div class="d-flex justify-content-md-end gap-3">
+                                        <div class="text-center">
+                                            <div class="h5 fw-bold text-primary mb-0">{{ daily_challenge.participants_count }}</div>
+                                            <small class="text-muted">Participants</small>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="h5 fw-bold text-success mb-0">{{ daily_challenge.quiz.questions.count }}</div>
+                                            <small class="text-muted">Questions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Details -->
+                    <div class="card-body p-4">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <h5 class="fw-semibold mb-3">About This Challenge</h5>
+                                <p class="text-muted mb-3">
+                                    {{ daily_challenge.quiz.description|default:"Test your knowledge with today's carefully selected quiz challenge. Complete it to earn bonus points and climb the daily leaderboard!" }}
+                                </p>
+                                
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                        <i class="bi bi-bookmark-fill me-1"></i>{{ daily_challenge.quiz.category.name|default:"General" }}
+                                    </span>
+                                    <span class="badge bg-{{ daily_challenge.quiz.difficulty_badge_class }} bg-opacity-10 text-{{ daily_challenge.quiz.difficulty_badge_class }}">
+                                        <i class="bi bi-speedometer2 me-1"></i>{{ daily_challenge.quiz.get_difficulty_display }}
+                                    </span>
+                                    <span class="badge bg-info bg-opacity-10 text-info">
+                                        <i class="bi bi-clock me-1"></i>{{ daily_challenge.quiz.time_limit }} minutes
+                                    </span>
+                                </div>
+
+                                {% if user_attempt %}
+                                    <!-- Already Completed -->
+                                    <div class="alert alert-success border-0" role="alert">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                                            <div>
+                                                <h6 class="alert-heading mb-1">Challenge Completed!</h6>
+                                                <p class="mb-0">
+                                                    You scored {{ user_attempt.score }}/{{ user_attempt.max_possible_score }} 
+                                                    ({{ user_attempt.percentage|floatformat:1 }}%) and earned 
+                                                    <strong>{{ user_attempt.points_earned|add:daily_challenge.bonus_points }} points</strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'quizzes:quiz_result' daily_challenge.quiz.id user_attempt.id %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>View Results
+                                        </a>
+                                        <a href="{% url 'quizzes:leaderboard' %}?period=DAILY" class="btn btn-primary">
+                                            <i class="bi bi-trophy me-1"></i>View Daily Leaderboard
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <!-- Call to Action -->
+                                    <div class="d-grid">
+                                        <a href="{% url 'quizzes:take_quiz' daily_challenge.quiz.id %}" class="btn btn-primary btn-lg btn-glow">
+                                            <i class="bi bi-play-fill me-2"></i>Accept Challenge
+                                            <span class="badge bg-warning text-dark ms-2">+{{ daily_challenge.bonus_points }} bonus</span>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <!-- Challenge Preview -->
+                                <div class="bg-light bg-opacity-50 rounded-3 p-3">
+                                    <h6 class="fw-semibold mb-3">Challenge Preview</h6>
+                                    {% if daily_challenge.quiz.questions.exists %}
+                                        {% for question in daily_challenge.quiz.questions.all|slice:":2" %}
+                                        <div class="mb-3">
+                                            <small class="text-muted">Question {{ forloop.counter }}</small>
+                                            <p class="small mb-1">{{ question.text|truncatechars:80 }}</p>
+                                        </div>
+                                        {% endfor %}
+                                        {% if daily_challenge.quiz.questions.count > 2 %}
+                                        <small class="text-muted">
+                                            ...and {{ daily_challenge.quiz.questions.count|add:"-2" }} more questions
+                                        </small>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Stats -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card-glass p-4 rounded-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up me-2"></i>Today's Challenge Stats
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="h4 text-primary fw-bold">{{ daily_challenge.participants_count }}</div>
+                            <small class="text-muted">Total Participants</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 text-success fw-bold">{{ daily_challenge.quiz.completion_rate }}%</div>
+                            <small class="text-muted">Completion Rate</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 text-warning fw-bold">{{ daily_challenge.quiz.average_score|floatformat:1 }}%</div>
+                            <small class="text-muted">Average Score</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 text-info fw-bold">{{ daily_challenge.bonus_points }}</div>
+                            <small class="text-muted">Bonus Points</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- No Challenge Available -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="empty-state text-center py-5">
+                    <div class="glass-morphism p-5 rounded-4">
+                        <i class="bi bi-calendar-x text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h3 class="mb-3">No Challenge Today</h3>
+                        <p class="text-muted mb-4">
+                            Today's daily challenge is not available yet. Check back later or explore our regular quizzes!
+                        </p>
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-glow">
+                            <i class="bi bi-collection me-2"></i>Browse All Quizzes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Quick Links -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-center">
+                <h6 class="text-muted mb-3">Quick Links</h6>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'quizzes:leaderboard' %}?period=DAILY" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-trophy me-1"></i>Daily Leaderboard
+                    </a>
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-collection me-1"></i>All Quizzes
+                    </a>
+                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Create Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.challenge-stats .h5 {
+    font-size: 1.5rem;
+}
+
+.btn-glow {
+    box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(13, 110, 253, 0.5);
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+.card-glass .card-header {
+    backdrop-filter: blur(10px);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(25, 135, 84, 0.05));
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.hover-scale:hover {
+    transform: translateY(-2px);
+    transition: transform 0.3s ease;
+}
+</style>
+{% endblock %}
