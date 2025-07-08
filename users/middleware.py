@@ -1,7 +1,7 @@
-from pyexpat.errors import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.conf import settings
+from django.contrib import messages
 import datetime
 
 
@@ -10,12 +10,29 @@ class AuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Skip middleware for login, logout, and registration pages
+        # Skip middleware for certain paths
         public_urls = [
             reverse('users:login'),
             reverse('users:student_register'),
             reverse('users:teacher_register'),
+            '/admin/login/',  # Allow access to Django admin login
         ]
+
+        # Allow access to admin URLs for authenticated admin users
+        if request.path.startswith('/admin/'):
+            # Allow unauthenticated access to admin login page
+            if request.path == '/admin/login/':
+                return self.get_response(request)
+            # Check if user is authenticated and authorized for admin access
+            if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'admin')):
+                return self.get_response(request)
+            elif not request.user.is_authenticated:
+                # Redirect to Django admin login for admin URLs
+                return redirect(f"/admin/login/?next={request.path}")
+            else:
+                # User is authenticated but not authorized for admin
+                messages.error(request, "You don't have permission to access the admin panel.")
+                return redirect('users:dashboard')
 
         if request.path in public_urls or request.path.startswith(settings.STATIC_URL) or request.path.startswith(settings.MEDIA_URL):
             return self.get_response(request)

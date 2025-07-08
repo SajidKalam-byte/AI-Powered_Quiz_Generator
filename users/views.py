@@ -11,6 +11,57 @@ from .decorators import role_required
 from quizzes.models import Quiz, UserQuizAttempt
 
 
+def _redirect_authenticated_user(request, user, next_url=''):
+    """Helper function to redirect authenticated users to appropriate dashboard"""
+    if not user.is_authenticated:
+        messages.error(request, "User not authenticated.")
+        return redirect('users:login')
+
+    # Handle Django admin access
+    if next_url.startswith('/admin/'):
+        if user.is_staff or user.is_superuser or (hasattr(user, 'role') and user.role == 'admin'):
+            return redirect(next_url)
+        messages.error(request, "You don't have permission to access the admin panel.")
+        return redirect('users:dashboard')
+
+    # Handle admin dashboard access
+    if next_url.startswith('/admin-dashboard/'):
+        if (hasattr(user, 'role') and user.role == 'admin') or user.is_staff or user.is_superuser:
+            return redirect(next_url)
+        messages.error(request, "You don't have permission to access the admin dashboard.")
+        return redirect('users:dashboard')
+
+    # If there's a specific next URL and it's not restricted, use it
+    if next_url and not next_url.startswith('/admin'):
+        return redirect(next_url)
+
+    # Default role-based redirection
+    if hasattr(user, 'role'):
+        if user.role == 'admin' or user.is_staff or user.is_superuser:
+            try:
+                return redirect('admin_dashboard:dashboard')
+            except Exception as e:
+                messages.error(request, f"Error redirecting to admin dashboard: {str(e)}")
+                return redirect('users:dashboard')
+        elif user.role == 'teacher':
+            return redirect('users:dashboard')
+        elif user.role == 'student':
+            return redirect('users:dashboard')
+        else:
+            messages.error(request, f"Unknown user role: {user.role}")
+            return redirect('users:login')
+    else:
+        # Fallback for users without role attribute
+        if user.is_staff or user.is_superuser:
+            try:
+                return redirect('admin_dashboard:dashboard')
+            except Exception as e:
+                messages.error(request, f"Error redirecting to admin dashboard: {str(e)}")
+                return redirect('users:dashboard')
+        else:
+            return redirect('users:dashboard')
+
+
 def student_register(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
@@ -87,9 +138,7 @@ def user_login(request):
     
     # Check if already authenticated
     if request.user.is_authenticated:
-        if next_url.startswith('/admin/'):
-            return redirect(next_url)
-        return redirect(next_url or 'users:dashboard')
+        return _redirect_authenticated_user(request, request.user, next_url)
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -109,16 +158,8 @@ def user_login(request):
             
             messages.success(request, f"Welcome back, {user.full_name or user.username}!")
             
-            # Handle admin redirect
-            if next_url.startswith('/admin/'):
-                if user.is_staff or user.is_superuser:
-                    return redirect(next_url)
-                else:
-                    messages.error(request, "You don't have permission to access the admin panel.")
-                    return redirect('users:dashboard')
-            
-            # Regular dashboard redirect
-            return redirect(next_url or 'users:dashboard')
+            # Redirect to appropriate dashboard based on user role and next URL
+            return _redirect_authenticated_user(request, user, next_url)
         else:
             messages.error(request, "Invalid username or password.")
             if next_url:
@@ -150,11 +191,17 @@ def dashboard(request):
     Unified dashboard view that renders role-specific dashboard templates.
     """
     user = request.user
+    
+    # For admin users, redirect to admin dashboard
+    if user.role == 'admin' or user.is_staff or user.is_superuser:
+        return redirect('admin_dashboard:dashboard')
+    
+    # Template mapping for non-admin users
     template_map = {
         'student': 'student/dashboard.html',
         'teacher': 'staff/dashboard.html',
-        'admin': 'admin/dash_admin.html'
     }
+    
     template = template_map.get(user.role)
     if not template:
         messages.error(request, "Unknown user role. Contact admin.")

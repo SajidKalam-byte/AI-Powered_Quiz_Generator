@@ -165,5 +165,5 @@ LOGGING = {
 # Session settings
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-# Custom login URL for redirects
-LOGIN_URL = 'users:login'
+# Custom login URL for redirects (commented out to allow Django admin to use default /admin/login/)
+# LOGIN_URL = 'users:login'

@@ -14,6 +14,13 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('role', 'admin')
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        
         return self.create_user(username, password, **extra_fields)
 
 
@@ -52,3 +59,34 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.full_name} ({self.role})"
+
+    def get_full_name(self):
+        """Required for Django admin"""
+        return self.full_name
+
+    def get_short_name(self):
+        """Required for Django admin"""
+        return self.full_name.split()[0] if self.full_name else self.username
+
+    def has_perm(self, perm, obj=None):
+        """Required for Django admin"""
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        """Required for Django admin"""
+        return self.is_superuser
+
+    @property
+    def is_admin(self):
+        """Check if user is admin"""
+        return self.role == 'admin' or self.is_staff or self.is_superuser
+
+    @property
+    def is_teacher(self):
+        """Check if user is teacher"""
+        return self.role == 'teacher'
+
+    @property
+    def is_student(self):
+        """Check if user is student"""
+        return self.role == 'student'
