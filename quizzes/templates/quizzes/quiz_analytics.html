@@ -1,0 +1,402 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Quiz Analytics: {{ quiz.title }} - QuizHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+    
+    .metric-label {
+        font-weight: 500;
+        color: #666;
+    }
+    
+    .metric-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+    }
+    
+    .question-analysis-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .difficulty-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .difficulty-easy { background: #d4edda; color: #155724; }
+    .difficulty-medium { background: #fff3cd; color: #856404; }
+    .difficulty-hard { background: #f8d7da; color: #721c24; }
+    
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .user-performance-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'quizzes:analytics_dashboard' %}">Analytics</a></li>
+                            <li class="breadcrumb-item active">Quiz Details</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-0">{{ quiz.title }}</h1>
+                    <p class="text-muted mb-0">Detailed analytics and performance insights</p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>View Quiz
+                    </a>
+                    <a href="{% url 'quizzes:quiz_export_form' quiz.id %}" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>Export
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-bar-chart me-2"></i>Performance Summary
+                </h5>
+                
+                {% if performance_summary %}
+                    <div class="metric-row">
+                        <span class="metric-label">Total Attempts</span>
+                        <span class="metric-value">{{ performance_summary.total_attempts }}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Completed Attempts</span>
+                        <span class="metric-value">{{ performance_summary.completed_attempts }}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Completion Rate</span>
+                        <span class="metric-value">{{ performance_summary.completion_rate|floatformat:1 }}%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Average Score</span>
+                        <span class="metric-value">{{ performance_summary.average_score|floatformat:1 }}%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Highest Score</span>
+                        <span class="metric-value">{{ performance_summary.highest_score|floatformat:1 }}%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Average Time Taken</span>
+                        <span class="metric-value">{{ performance_summary.avg_time_taken|floatformat:0 }} mins</span>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-graph-up display-4 d-block mb-2"></i>
+                        <p>No performance data available yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle me-2"></i>Quiz Information
+                </h5>
+                <div class="metric-row">
+                    <span class="metric-label">Category</span>
+                    <span class="metric-value">{{ quiz.category.name|default:"Uncategorized" }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Difficulty</span>
+                    <span class="difficulty-badge difficulty-{{ quiz.difficulty|lower }}">{{ quiz.get_difficulty_display }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Questions</span>
+                    <span class="metric-value">{{ quiz.question_count }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Time Limit</span>
+                    <span class="metric-value">{{ quiz.time_limit|default:"No limit" }}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Created</span>
+                    <span class="metric-value">{{ quiz.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-graph-up me-2"></i>Attempt Trends
+                </h5>
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-clock me-2"></i>Time Analysis
+                </h5>
+                {% if time_analysis %}
+                    <div class="metric-row">
+                        <span class="metric-label">Average Time</span>
+                        <span class="metric-value">{{ time_analysis.avg_time|floatformat:1 }} mins</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Fastest Completion</span>
+                        <span class="metric-value">{{ time_analysis.fastest_time|floatformat:1 }} mins</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Slowest Completion</span>
+                        <span class="metric-value">{{ time_analysis.slowest_time|floatformat:1 }} mins</span>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Time Distribution</h6>
+                        <div class="progress-bar-custom mb-2">
+                            <div class="progress-fill bg-success" style="width: {{ time_analysis.fast_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ time_analysis.fast_percentage|floatformat:1 }}% completed in under average time</small>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock display-4 d-block mb-2"></i>
+                        <p>No timing data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-question-circle me-2"></i>Question Analysis
+                </h5>
+                
+                {% if question_analysis %}
+                    {% for question in question_analysis %}
+                        <div class="question-analysis-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-1">Question {{ forloop.counter }}</h6>
+                                <span class="difficulty-badge difficulty-{{ question.difficulty|lower }}">
+                                    {{ question.get_difficulty_display }}
+                                </span>
+                            </div>
+                            <p class="text-muted mb-2">{{ question.text|truncatechars:100 }}</p>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Correct Answers</small>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill bg-success" style="width: {{ question.correct_percentage }}%"></div>
+                                    </div>
+                                    <small>{{ question.correct_percentage|floatformat:1 }}%</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Average Time</small>
+                                    <div class="h6 mb-0">{{ question.avg_time|floatformat:1 }}s</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Attempts</small>
+                                    <div class="h6 mb-0">{{ question.total_attempts }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-question-circle display-4 d-block mb-2"></i>
+                        <p>No question analysis data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- User Performance -->
+    <div class="row">
+        <div class="col-12">
+            <div class="analytics-card">
+                <h5 class="card-title">
+                    <i class="bi bi-people me-2"></i>Top Performers
+                </h5>
+                
+                {% if user_performance %}
+                    {% for user in user_performance %}
+                        <div class="user-performance-item">
+                            <div class="user-avatar">
+                                {{ user.user.first_name.0|default:user.user.username.0|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ user.user.get_full_name|default:user.user.username }}</h6>
+                                        <small class="text-muted">{{ user.attempts }} attempt{{ user.attempts|pluralize }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h6 mb-0 text-primary">{{ user.best_score|floatformat:1 }}%</div>
+                                        <small class="text-muted">Best Score</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-people display-4 d-block mb-2"></i>
+                        <p>No user performance data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+    // Attempt Trends Chart
+    {% if attempt_trends %}
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    const trendsChart = new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ attempt_trends.labels|safe }},
+            datasets: [{
+                label: 'Attempts',
+                data: {{ attempt_trends.attempts|safe }},
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Average Score',
+                data: {{ attempt_trends.scores|safe }},
+                borderColor: '#4bb543',
+                backgroundColor: 'rgba(75, 181, 67, 0.1)',
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        }
+    });
+    {% else %}
+    document.getElementById('trendsChart').style.display = 'none';
+    {% endif %}
+
+    // Auto-refresh every 2 minutes
+    setInterval(function() {
+        window.location.reload();
+    }, 120000);
+</script>
+{% endblock %}

@@ -20,6 +20,7 @@ from .utils import (
 )
 from quizzes.models import Quiz, Question, Category
 from quizzes.views import get_dashboard_template
+from ai.utils import ai_service
 import requests
 from django.conf import settings
 
@@ -286,7 +287,51 @@ def create_quiz_from_file_data(user, form_data):
     return quiz
 
 def generate_quiz_with_ai(text_content, topic, num_questions, difficulty, category=None):
-    """Generate quiz using AI from text content"""
+    """Generate quiz using enhanced AI service"""
+    try:
+        category_name = category.name if category else "General Knowledge"
+        
+        # Use the enhanced AI service
+        quiz_data = ai_service.generate_quiz_questions(
+            topic=topic,
+            content=text_content,
+            num_questions=num_questions,
+            difficulty=difficulty,
+            question_types=['MULTIPLE_CHOICE'],
+            category=category_name
+        )
+        
+        if not quiz_data or 'questions' not in quiz_data:
+            raise Exception("AI service returned invalid quiz data")
+        
+        # Convert to expected format for database storage
+        formatted_quiz = {
+            'title': quiz_data.get('title', f"Quiz: {topic}"),
+            'description': quiz_data.get('description', f"AI-generated quiz on {topic}"),
+            'questions': []
+        }
+        
+        for q in quiz_data['questions']:
+            if q.get('type') == 'MULTIPLE_CHOICE':
+                formatted_question = {
+                    'text': q['text'],
+                    'options': q['options'],
+                    'correct_option': q['correct_option'],
+                    'explanation': q.get('explanation', ''),
+                    'difficulty': q.get('difficulty', difficulty),
+                    'points': q.get('points', 10)
+                }
+                formatted_quiz['questions'].append(formatted_question)
+        
+        return formatted_quiz
+        
+    except Exception as e:
+        logger.error(f"Enhanced AI quiz generation failed: {str(e)}")
+        # Fallback to original method
+        return generate_quiz_with_ai_fallback(text_content, topic, num_questions, difficulty, category)
+
+def generate_quiz_with_ai_fallback(text_content, topic, num_questions, difficulty, category=None):
+    """Fallback AI quiz generation method"""
     category_name = category.name if category else "General Knowledge"
     
     prompt = f"""

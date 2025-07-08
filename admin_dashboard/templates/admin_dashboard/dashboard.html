@@ -1,0 +1,451 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - QuizHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .metric-change {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .metric-change.positive {
+        color: #28a745;
+    }
+    
+    .metric-change.negative {
+        color: #dc3545;
+    }
+    
+    .admin-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .admin-card-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .admin-card-title {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .quick-action-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action-btn:hover {
+        border-color: #4361ee;
+        color: #4361ee;
+        text-decoration: none;
+        background: rgba(67, 97, 238, 0.05);
+    }
+    
+    .quick-action-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .activity-user { background: #28a745; }
+    .activity-quiz { background: #4361ee; }
+    .activity-attempt { background: #ffc107; color: #333 !important; }
+    
+    .recent-item {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .recent-item:last-child {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-active { background: #d4edda; color: #155724; }
+    .status-inactive { background: #f8d7da; color: #721c24; }
+    .status-published { background: #d1ecf1; color: #0c5460; }
+    .status-unpublished { background: #fff3cd; color: #856404; }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Platform overview and management</p>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="refreshDashboard()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_users' %}">Manage Users</a></li>
+                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_quizzes' %}">Manage Quizzes</a></li>
+                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:system_settings' %}">Settings</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-metric-card">
+                <div class="metric-value">{{ total_users|default:0 }}</div>
+                <div class="metric-label">Total Users</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-up"></i> +12% this week
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-metric-card">
+                <div class="metric-value">{{ total_quizzes|default:0 }}</div>
+                <div class="metric-label">Total Quizzes</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-up"></i> +8% this week
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-metric-card">
+                <div class="metric-value">{{ total_attempts|default:0 }}</div>
+                <div class="metric-label">Quiz Attempts</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-up"></i> +15% this week
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-metric-card">
+                <div class="metric-value">{{ completion_rate|floatformat:1|default:"0.0" }}%</div>
+                <div class="metric-label">Completion Rate</div>
+                <div class="metric-change positive">
+                    <i class="bi bi-arrow-up"></i> +3% this week
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Platform Engagement Chart -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-graph-up me-2"></i>Platform Engagement
+                    </h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="engagementChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-clock me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="activity-feed">
+                    {% for activity in recent_activity %}
+                        <div class="activity-item">
+                            <div class="activity-icon activity-{{ activity.type }}">
+                                <i class="bi bi-{{ activity.icon|default:'circle' }}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">{{ activity.description }}</div>
+                                <div class="activity-time text-muted">{{ activity.timestamp|timesince }} ago</div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                            No recent activity
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-heart-pulse me-2"></i>System Health
+                    </h5>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="h4 text-success">{{ ai_usage_today }}</div>
+                        <small class="text-muted">AI Requests Today</small>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="h4 text-warning">{{ inactive_users }}</div>
+                        <small class="text-muted">Inactive Users (30d)</small>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="h4 text-info">99.8%</div>
+                        <small class="text-muted">System Uptime</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="quick-actions">
+                    <a href="{% url 'admin_dashboard:manage_users' %}" class="quick-action-btn">
+                        <i class="bi bi-people quick-action-icon"></i>
+                        <strong>Manage Users</strong>
+                        <br><small class="text-muted">View and manage user accounts</small>
+                    </a>
+                    <a href="{% url 'admin_dashboard:manage_quizzes' %}" class="quick-action-btn">
+                        <i class="bi bi-journal-bookmark quick-action-icon"></i>
+                        <strong>Manage Quizzes</strong>
+                        <br><small class="text-muted">Review and moderate quizzes</small>
+                    </a>
+                    <a href="{% url 'admin_dashboard:manage_ai_prompts' %}" class="quick-action-btn">
+                        <i class="bi bi-robot quick-action-icon"></i>
+                        <strong>AI Prompts</strong>
+                        <br><small class="text-muted">Configure AI prompt templates</small>
+                    </a>
+                    <a href="{% url 'admin_dashboard:system_settings' %}" class="quick-action-btn">
+                        <i class="bi bi-gear quick-action-icon"></i>
+                        <strong>System Settings</strong>
+                        <br><small class="text-muted">Configure platform settings</small>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-person-plus me-2"></i>Recent Users
+                    </h5>
+                </div>
+                <div class="recent-items">
+                    {% for user in recent_users %}
+                        <div class="recent-item">
+                            <div>
+                                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                                <br><small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="status-badge status-{{ user.is_active|yesno:'active,inactive' }}">
+                                    {{ user.role|title }}
+                                </span>
+                                <br><small class="text-muted">{{ user.date_joined|timesince }} ago</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center text-muted py-3">
+                            No recent users
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Quizzes -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h5 class="admin-card-title">
+                        <i class="bi bi-plus-circle me-2"></i>Recent Quizzes
+                    </h5>
+                </div>
+                <div class="recent-items">
+                    {% for quiz in recent_quizzes %}
+                        <div class="recent-item">
+                            <div>
+                                <strong>{{ quiz.title|truncatechars:25 }}</strong>
+                                <br><small class="text-muted">by {{ quiz.created_by.get_full_name|default:quiz.created_by.username }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="status-badge status-{{ quiz.is_published|yesno:'published,unpublished' }}">
+                                    {{ quiz.is_published|yesno:'Published,Draft' }}
+                                </span>
+                                <br><small class="text-muted">{{ quiz.created_at|timesince }} ago</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center text-muted py-3">
+                            No recent quizzes
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+    // Platform Engagement Chart
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    
+    // Sample data - replace with actual data from your analytics
+    const engagementChart = new Chart(engagementCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Active Users',
+                data: [120, 135, 150, 180, 200, 220],
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Quiz Attempts',
+                data: [300, 350, 420, 480, 550, 600],
+                borderColor: '#4bb543',
+                backgroundColor: 'rgba(75, 181, 67, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Utility functions
+    function refreshDashboard() {
+        window.location.reload();
+    }
+
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        refreshDashboard();
+    }, 300000);
+
+    // Real-time updates using WebSocket (optional)
+    // You can implement WebSocket connections for real-time dashboard updates
+</script>
+{% endblock %}

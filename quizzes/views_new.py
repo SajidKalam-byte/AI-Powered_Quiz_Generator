@@ -18,12 +18,8 @@ from .forms import QuizForm, QuestionForm, AIGenerateQuizForm
 
 def get_dashboard_template(user):
     """Returns the correct base dashboard layout template based on user role."""
-    template_map = {
-        'student': 'base/student_base.html',
-        'teacher': 'base/dashboard_base.html',
-        'admin': 'base/dashboard_base.html'
-    }
-    return template_map.get(user.role, 'base/student_base.html')
+    # Use the same modern template for all users to ensure consistent UI
+    return 'base/student_base.html'
 
 def get_or_create_user_profile(user):
     """Get or create user profile for points tracking"""

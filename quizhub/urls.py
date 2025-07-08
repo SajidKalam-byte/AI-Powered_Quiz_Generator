@@ -9,5 +9,6 @@ urlpatterns = [
     path('quiz/', include(('quizzes.urls', 'quizzes'), namespace='quizzes')),
     path('textprocessor/', include('textprocessor.urls')),
     path('ai/', include('ai.urls')),
+    path('admin-dashboard/', include('admin_dashboard.urls', namespace='admin_dashboard')),
 
 ]

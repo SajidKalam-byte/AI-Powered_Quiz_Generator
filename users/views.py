@@ -252,9 +252,5 @@ def profile_view(request):
 
 def get_dashboard_template(user):
     """Helper function to determine the correct base template based on user role"""
-    if user.role == 'student':
-        return 'base/student_base.html'
-    elif user.role == 'teacher':
-        return 'base/dashboard_base.html'
-    else:
-        return 'admin/dash_admin.html'
+    # Use the same modern template for all users to ensure consistent UI
+    return 'base/student_base.html'

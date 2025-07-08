@@ -1,0 +1,525 @@
+{% extends dashboard_template %}
+{% load static %}
+
+{% block title %}Export Quiz - {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .export-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .format-option {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .format-option:hover {
+        border-color: #007bff;
+        background: #f8f9ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+    }
+    
+    .format-option.selected {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    
+    .format-option input[type="radio"] {
+        margin-right: 1rem;
+    }
+    
+    .format-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .format-name {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .format-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .options-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .custom-switch {
+        margin-bottom: 1rem;
+    }
+    
+    .custom-switch .custom-control-label::before {
+        border-radius: 1rem;
+    }
+    
+    .custom-switch .custom-control-label::after {
+        border-radius: 50%;
+    }
+    
+    .preview-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .preview-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .export-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    
+    .export-btn:disabled {
+        background: #6c757d;
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+    
+    .quiz-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    
+    .loading-content {
+        background: white;
+        padding: 3rem;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 400px;
+    }
+    
+    .format-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .option-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .option-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .switch-wrapper {
+        margin-left: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quiz
+        </a>
+    </div>
+    
+    <!-- Quiz Information -->
+    <div class="quiz-info">
+        <h1 class="mb-3">
+            <i class="bi bi-download me-3"></i>
+            Export Quiz
+        </h1>
+        <div class="row">
+            <div class="col-lg-8">
+                <h3 class="mb-2">{{ quiz.title }}</h3>
+                <p class="mb-0 opacity-90">{{ quiz.description|default:"No description available" }}</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="bg-white bg-opacity-20 rounded-3 p-3 mt-3 mt-lg-0">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="mb-1">{{ quiz.questions.count }}</h4>
+                            <small>Questions</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="mb-1">{{ quiz.get_difficulty_display }}</h4>
+                            <small>Difficulty</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form id="exportForm" method="post" action="{% url 'quizzes:export_quiz' quiz.id %}">
+                {% csrf_token %}
+                
+                <!-- Format Selection -->
+                <div class="export-card">
+                    <h2 class="h4 mb-4">
+                        <i class="bi bi-file-earmark me-2 text-primary"></i>
+                        Choose Export Format
+                    </h2>
+                    
+                    <div class="format-grid">
+                        <div class="format-option" data-format="pdf">
+                            <input type="radio" name="format" value="pdf" id="format_pdf" checked>
+                            <label for="format_pdf" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-filetype-pdf format-icon text-danger"></i>
+                                    <div class="format-name">PDF Document</div>
+                                    <div class="format-description">Professional print-ready format with formatting</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="format-option" data-format="docx">
+                            <input type="radio" name="format" value="docx" id="format_docx">
+                            <label for="format_docx" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-filetype-docx format-icon text-primary"></i>
+                                    <div class="format-name">Word Document</div>
+                                    <div class="format-description">Editable Microsoft Word format</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="format-option" data-format="xlsx">
+                            <input type="radio" name="format" value="xlsx" id="format_xlsx">
+                            <label for="format_xlsx" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-filetype-xlsx format-icon text-success"></i>
+                                    <div class="format-name">Excel Spreadsheet</div>
+                                    <div class="format-description">Structured data in Excel format</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="format-option" data-format="json">
+                            <input type="radio" name="format" value="json" id="format_json">
+                            <label for="format_json" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-braces format-icon text-warning"></i>
+                                    <div class="format-name">JSON Data</div>
+                                    <div class="format-description">Machine-readable structured data</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="format-option" data-format="csv">
+                            <input type="radio" name="format" value="csv" id="format_csv">
+                            <label for="format_csv" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-filetype-csv format-icon text-info"></i>
+                                    <div class="format-name">CSV File</div>
+                                    <div class="format-description">Simple comma-separated values</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="format-option" data-format="html">
+                            <input type="radio" name="format" value="html" id="format_html">
+                            <label for="format_html" class="w-100 mb-0">
+                                <div class="text-center">
+                                    <i class="bi bi-filetype-html format-icon text-secondary"></i>
+                                    <div class="format-name">HTML Web Page</div>
+                                    <div class="format-description">Web-compatible HTML format</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export Options -->
+                <div class="export-card">
+                    <h2 class="h4 mb-4">
+                        <i class="bi bi-gear me-2 text-primary"></i>
+                        Export Options
+                    </h2>
+                    
+                    <div class="options-section">
+                        <h5 class="mb-3">Content Options</h5>
+                        
+                        <div class="option-item">
+                            <div>
+                                <strong>Include Correct Answers</strong>
+                                <br><small class="text-muted">Show the correct answers for each question</small>
+                            </div>
+                            <div class="switch-wrapper">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="include_answers" id="include_answers" checked>
+                                    <label class="form-check-label" for="include_answers"></label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-item">
+                            <div>
+                                <strong>Include Explanations</strong>
+                                <br><small class="text-muted">Show explanations for correct answers</small>
+                            </div>
+                            <div class="switch-wrapper">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="include_explanations" id="include_explanations" checked>
+                                    <label class="form-check-label" for="include_explanations"></label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-item">
+                            <div>
+                                <strong>Include Quiz Metadata</strong>
+                                <br><small class="text-muted">Include additional quiz information and settings</small>
+                            </div>
+                            <div class="switch-wrapper">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="include_metadata" id="include_metadata" checked>
+                                    <label class="form-check-label" for="include_metadata"></label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if quiz.analytics %}
+                        <div class="option-item">
+                            <div>
+                                <strong>Include Analytics Data</strong>
+                                <br><small class="text-muted">Show quiz performance statistics and analytics</small>
+                            </div>
+                            <div class="switch-wrapper">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="include_analytics" id="include_analytics">
+                                    <label class="form-check-label" for="include_analytics"></label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Format-specific options -->
+                    <div id="format-specific-options"></div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="export-card text-center">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <button type="button" class="btn preview-btn me-3" id="previewBtn">
+                                <i class="bi bi-eye me-2"></i>Preview
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn export-btn" id="exportBtn">
+                                <i class="bi bi-download me-2"></i>Export Quiz
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Exports are generated instantly. Large quizzes may take a few seconds.
+                        </small>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h4>Generating Export...</h4>
+        <p class="text-muted mb-0">Please wait while we prepare your quiz export.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formatOptions = document.querySelectorAll('.format-option');
+    const exportForm = document.getElementById('exportForm');
+    const exportBtn = document.getElementById('exportBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    // Handle format selection
+    formatOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected class from all options
+            formatOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            this.classList.add('selected');
+            
+            // Select the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Update format-specific options
+            updateFormatOptions(radio.value);
+            
+            // Update button text
+            updateButtonText(radio.value);
+        });
+    });
+    
+    // Initial format setup
+    const selectedFormat = document.querySelector('input[name="format"]:checked');
+    if (selectedFormat) {
+        updateFormatOptions(selectedFormat.value);
+        updateButtonText(selectedFormat.value);
+        document.querySelector(`[data-format="${selectedFormat.value}"]`).classList.add('selected');
+    }
+    
+    function updateFormatOptions(format) {
+        const container = document.getElementById('format-specific-options');
+        container.innerHTML = '';
+        
+        // Add format-specific options based on selected format
+        if (format === 'pdf') {
+            container.innerHTML = `
+                <div class="mt-3">
+                    <h6>PDF Options</h6>
+                    <div class="option-item">
+                        <div>
+                            <strong>Page Size</strong>
+                            <br><small class="text-muted">Choose the page size for the PDF</small>
+                        </div>
+                        <div>
+                            <select class="form-select" name="pdf_page_size" style="width: auto;">
+                                <option value="A4">A4</option>
+                                <option value="Letter">Letter</option>
+                                <option value="Legal">Legal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    function updateButtonText(format) {
+        const formatNames = {
+            'pdf': 'PDF',
+            'docx': 'Word',
+            'xlsx': 'Excel',
+            'json': 'JSON',
+            'csv': 'CSV',
+            'html': 'HTML'
+        };
+        
+        exportBtn.innerHTML = `<i class="bi bi-download me-2"></i>Export as ${formatNames[format]}`;
+    }
+    
+    // Handle preview
+    previewBtn.addEventListener('click', function() {
+        const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+        const includeAnswers = document.getElementById('include_answers').checked;
+        const includeExplanations = document.getElementById('include_explanations').checked;
+        const includeAnalytics = document.getElementById('include_analytics')?.checked || false;
+        
+        const previewUrl = `{% url 'quizzes:export_preview' quiz.id %}?` +
+            `answers=${includeAnswers}&explanations=${includeExplanations}&analytics=${includeAnalytics}`;
+        
+        window.open(previewUrl, '_blank');
+    });
+    
+    // Handle form submission
+    exportForm.addEventListener('submit', function(e) {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Exporting...';
+        loadingOverlay.style.display = 'flex';
+        
+        // Create a hidden iframe to handle the download
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        // Submit form to iframe
+        this.target = iframe.name = 'download_frame_' + Date.now();
+        iframe.name = this.target;
+        
+        // Reset button after a delay (assuming download started)
+        setTimeout(() => {
+            exportBtn.disabled = false;
+            updateButtonText(document.querySelector('input[name="format"]:checked').value);
+            loadingOverlay.style.display = 'none';
+        }, 3000);
+    });
+    
+    // Handle option toggles
+    const optionSwitches = document.querySelectorAll('.form-check-input');
+    optionSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            // Add visual feedback or additional logic if needed
+            console.log(`${this.name} changed to ${this.checked}`);
+        });
+    });
+});
+</script>
+{% endblock %}

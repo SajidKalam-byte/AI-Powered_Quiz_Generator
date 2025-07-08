@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quiz_data.title }} - Quiz Export</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .quiz-title {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .quiz-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .info-value {
+            color: #007bff;
+            font-weight: 500;
+        }
+        .description {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 30px;
+        }
+        .questions-section {
+            margin-top: 30px;
+        }
+        .section-title {
+            color: #495057;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .question {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .question-number {
+            background: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .question-type {
+            background: #6c757d;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        .question-text {
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+        .options {
+            margin: 20px 0;
+        }
+        .option {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+        }
+        .option-letter {
+            background: #6c757d;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .option.correct .option-letter {
+            background: #28a745;
+        }
+        .correct-answer {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .correct-answer-label {
+            font-weight: 600;
+            color: #0c5460;
+            margin-right: 8px;
+        }
+        .explanation {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .explanation-label {
+            font-weight: 600;
+            color: #004085;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .metadata {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #5f6368;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin: 2px;
+        }
+        .badge-easy { background: #d4edda; color: #155724; }
+        .badge-medium { background: #fff3cd; color: #856404; }
+        .badge-hard { background: #f8d7da; color: #721c24; }
+        
+        @media print {
+            body { margin: 0; }
+            .question { break-inside: avoid; }
+        }
+        
+        @media (max-width: 600px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="quiz-title">{{ quiz_data.title }}</h1>
+        <p style="color: #6c757d; margin: 0;">Exported on {{ export_date|date:"F j, Y" }} at {{ export_date|time:"g:i A" }}</p>
+    </div>
+
+    <!-- Quiz Information -->
+    <div class="quiz-info">
+        <h2 style="margin-top: 0; color: #495057;">Quiz Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Category:</span>
+                <span class="info-value">{{ quiz_data.category }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Difficulty:</span>
+                <span class="info-value">
+                    <span class="badge badge-{{ quiz_data.difficulty|lower }}">{{ quiz_data.difficulty }}</span>
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total Questions:</span>
+                <span class="info-value">{{ quiz_data.total_questions }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Created by:</span>
+                <span class="info-value">{{ quiz_data.created_by }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Created on:</span>
+                <span class="info-value">{{ quiz_data.created_at|slice:":10" }}</span>
+            </div>
+            {% if quiz_data.estimated_time %}
+            <div class="info-item">
+                <span class="info-label">Estimated Time:</span>
+                <span class="info-value">{{ quiz_data.estimated_time }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Description -->
+    {% if quiz_data.description %}
+    <div class="description">
+        <h3 style="margin-top: 0; color: #856404;">Description</h3>
+        <p style="margin-bottom: 0;">{{ quiz_data.description }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Analytics (if included) -->
+    {% if quiz_data.analytics and options.include_analytics %}
+    <div class="quiz-info">
+        <h2 style="margin-top: 0; color: #495057;">Quiz Analytics</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Total Attempts:</span>
+                <span class="info-value">{{ quiz_data.analytics.total_attempts }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Unique Users:</span>
+                <span class="info-value">{{ quiz_data.analytics.unique_users }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Average Score:</span>
+                <span class="info-value">{{ quiz_data.analytics.average_score|floatformat:1 }}%</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Completion Rate:</span>
+                <span class="info-value">{{ quiz_data.analytics.completion_rate|floatformat:1 }}%</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Questions -->
+    <div class="questions-section">
+        <h2 class="section-title">Questions</h2>
+        
+        {% for question in quiz_data.questions %}
+        <div class="question">
+            <div class="question-header">
+                <span class="question-number">Question {{ forloop.counter }}</span>
+                <span class="question-type">{{ question.type }}</span>
+            </div>
+            
+            <div class="question-text">{{ question.text }}</div>
+            
+            <!-- Multiple Choice Options -->
+            {% if question.options and question.options.A %}
+            <div class="options">
+                {% for letter, option_text in question.options.items %}
+                <div class="option{% if options.include_answers and letter == question.correct_option %} correct{% endif %}">
+                    <span class="option-letter">{{ letter }}</span>
+                    <span>{{ option_text }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Direct Answer (for non-multiple choice) -->
+            {% if options.include_answers and question.correct_answer and not question.options.A %}
+            <div class="correct-answer">
+                <span class="correct-answer-label">Correct Answer:</span>
+                {{ question.correct_answer }}
+            </div>
+            {% endif %}
+            
+            <!-- Explanation -->
+            {% if options.include_explanations and question.explanation %}
+            <div class="explanation">
+                <span class="explanation-label">Explanation:</span>
+                {{ question.explanation }}
+            </div>
+            {% endif %}
+            
+            <!-- Question Metadata -->
+            {% if question.enhanced or question.points %}
+            <div class="metadata">
+                <strong>Question Details:</strong>
+                Points: {{ question.points|default:"10" }}
+                {% if question.enhanced.cognitive_level %} | Cognitive Level: {{ question.enhanced.cognitive_level }}{% endif %}
+                {% if question.enhanced.estimated_time %} | Est. Time: {{ question.enhanced.estimated_time }}{% endif %}
+                {% if question.enhanced.topic_tags %} | Topics: {{ question.enhanced.topic_tags|join:", " }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            This quiz export was generated by QuizHub AI-Powered Quiz Generator<br>
+            {% if options.include_answers %}
+            <strong>Note: This export includes answers and is intended for instructors.</strong><br>
+            {% endif %}
+            For more information, visit our platform.
+        </p>
+    </div>
+</body>
+</html>

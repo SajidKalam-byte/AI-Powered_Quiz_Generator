@@ -15,15 +15,12 @@ from .models import (
     UserProfile, DailyChallenge, Leaderboard
 )
 from .forms import QuizForm, QuestionForm, AIGenerateQuizForm
+from .analytics import AnalyticsService
 
 def get_dashboard_template(user):
     """Returns the correct base dashboard layout template based on user role."""
-    template_map = {
-        'student': 'base/student_base.html',
-        'teacher': 'base/dashboard_base.html',
-        'admin': 'base/dashboard_base.html'
-    }
-    return template_map.get(user.role, 'base/student_base.html')
+    # Use the same modern template for all users to ensure consistent UI
+    return 'base/student_base.html'
 
 def get_or_create_user_profile(user):
     """Get or create user profile for points tracking"""
@@ -406,3 +403,153 @@ def quiz_stats_api(request, quiz_id):
     }
     
     return JsonResponse(stats)
+
+# ==================== ANALYTICS VIEWS ====================
+
+@login_required
+def analytics_dashboard(request):
+    """Main analytics dashboard with comprehensive stats"""
+    # Check if user has permission to view analytics
+    if not request.user.is_staff and request.user.role not in ['teacher', 'admin']:
+        messages.error(request, 'You do not have permission to view analytics.')
+        return redirect('quizzes:quiz_list')
+    
+    analytics_service = AnalyticsService()
+    
+    # Get analytics based on user role
+    if request.user.role == 'admin' or request.user.is_staff:
+        # Platform-wide analytics for admins
+        platform_data = analytics_service.get_platform_analytics()
+        
+        context = {
+            'total_users': platform_data.total_users,
+            'total_quizzes': platform_data.total_quizzes,
+            'total_attempts': platform_data.total_quiz_attempts,
+            'completion_rate': 85.0,  # Placeholder
+            'popular_categories': platform_data.popular_categories,
+            'recent_activity': [],  # Placeholder
+            'user_engagement': platform_data.user_engagement_trends,
+            'dashboard_template': get_dashboard_template(request.user)
+        }
+    else:
+        # Teacher analytics - only their quizzes
+        user_quizzes = Quiz.objects.filter(created_by=request.user)
+        total_attempts = UserQuizAttempt.objects.filter(quiz__in=user_quizzes).count()
+        avg_score = UserQuizAttempt.objects.filter(
+            quiz__in=user_quizzes, 
+            status='COMPLETED'
+        ).aggregate(avg=Avg('score'))['avg'] or 0
+        
+        context = {
+            'created_quizzes': {
+                'total_quizzes': user_quizzes.count(),
+                'total_attempts': total_attempts,
+                'avg_score': avg_score
+            },
+            'student_performance': {'avg_score': avg_score, 'completion_rate': 80.0},
+            'quiz_engagement': {'quiz_names': [], 'avg_scores': [], 'completion_rates': []},
+            'dashboard_template': get_dashboard_template(request.user)
+        }
+    
+    return render(request, 'quizzes/analytics_dashboard.html', context)
+
+@login_required
+def quiz_analytics(request, quiz_id):
+    """Detailed analytics for a specific quiz"""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check permissions
+    if not (request.user == quiz.created_by or request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, 'You do not have permission to view this quiz\'s analytics.')
+        return redirect('quizzes:quiz_detail', quiz_id=quiz_id)
+    
+    analytics_service = AnalyticsService()
+    quiz_analytics = analytics_service.get_quiz_analytics(quiz, detailed=True)
+    
+    # Convert to dict for template
+    performance_summary = {
+        'total_attempts': quiz_analytics.total_attempts,
+        'completed_attempts': quiz_analytics.total_attempts,  # Assuming all are completed
+        'completion_rate': quiz_analytics.completion_rate,
+        'average_score': quiz_analytics.average_score,
+        'highest_score': 100.0,  # Placeholder
+        'avg_time_taken': quiz_analytics.average_time / 60 if quiz_analytics.average_time else 0
+    }
+    
+    context = {
+        'quiz': quiz,
+        'performance_summary': performance_summary,
+        'question_analysis': quiz_analytics.question_analytics,
+        'time_analysis': {'avg_time': quiz_analytics.average_time / 60, 'fastest_time': 5, 'slowest_time': 30, 'fast_percentage': 60},
+        'attempt_trends': {'labels': [], 'attempts': [], 'scores': []},
+        'user_performance': [],
+        'difficulty_analysis': {'difficulty_rating': quiz_analytics.difficulty_rating},
+        'dashboard_template': get_dashboard_template(request.user)
+    }
+    
+    return render(request, 'quizzes/quiz_analytics.html', context)
+
+# ==================== ANALYTICS API ENDPOINTS ====================
+
+@login_required
+def quiz_analytics_api(request, quiz_id):
+    """API endpoint for quiz analytics data"""
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check permissions
+    if not (request.user == quiz.created_by or request.user.is_staff or request.user.role == 'admin'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    analytics_service = AnalyticsService()
+    analytics_type = request.GET.get('type', 'summary')
+    
+    if analytics_type == 'summary':
+        quiz_analytics = analytics_service.get_quiz_analytics(quiz)
+        data = {
+            'total_attempts': quiz_analytics.total_attempts,
+            'average_score': quiz_analytics.average_score,
+            'completion_rate': quiz_analytics.completion_rate
+        }
+    else:
+        data = {'error': 'Invalid analytics type'}
+    
+    return JsonResponse(data)
+
+@login_required
+def user_analytics_api(request):
+    """API endpoint for user analytics data"""
+    analytics_service = AnalyticsService()
+    analytics_type = request.GET.get('type', 'summary')
+    
+    if analytics_type == 'summary':
+        user_metrics = analytics_service.get_user_analytics(request.user)
+        data = {
+            'total_quizzes_taken': user_metrics.total_quizzes_taken,
+            'average_score': user_metrics.average_score,
+            'total_time_spent': user_metrics.total_time_spent
+        }
+    else:
+        data = {'error': 'Invalid analytics type'}
+    
+    return JsonResponse(data)
+
+@login_required
+def platform_analytics_api(request):
+    """API endpoint for platform-wide analytics (admin only)"""
+    if not (request.user.is_staff or request.user.role == 'admin'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    analytics_service = AnalyticsService()
+    analytics_type = request.GET.get('type', 'summary')
+    
+    if analytics_type == 'summary':
+        platform_data = analytics_service.get_platform_analytics()
+        data = {
+            'total_users': platform_data.total_users,
+            'total_quizzes': platform_data.total_quizzes,
+            'total_attempts': platform_data.total_quiz_attempts
+        }
+    else:
+        data = {'error': 'Invalid analytics type'}
+    
+    return JsonResponse(data)

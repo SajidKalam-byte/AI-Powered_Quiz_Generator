@@ -1,74 +1,120 @@
 {% extends dashboard_template %}
 {% load static %}
 
-{% block title %}Generate Quiz from File{% endblock %}
+{% block title %}Generate AI Quiz{% endblock %}
 
 {% block extra_css %}
 <style>
-    .generation-header {
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .page-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-radius: 15px;
         padding: 2rem;
         margin-bottom: 2rem;
         text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     
-    .file-preview {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        margin-bottom: 2rem;
-        border-left: 4px solid #007bff;
+    .page-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
     }
     
-    .form-section {
+    .page-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .content-card {
         background: white;
         border-radius: 15px;
         padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
     }
     
-    .topic-selection {
+    .file-preview {
+        border-left: 4px solid #007bff;
+    }
+    
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .file-icon {
+        font-size: 2.5rem;
+        width: 60px;
+        text-align: center;
+    }
+    
+    .file-details h5 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+    }
+    
+    .file-meta {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .form-section h4 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .topic-selection-area {
         background: #f8f9fa;
         border-radius: 10px;
         padding: 1.5rem;
-        margin: 1rem 0;
+        margin-top: 1rem;
     }
     
-    .topic-option {
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        padding: 1rem;
+    .form-check {
         margin-bottom: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
     }
     
-    .topic-option:hover {
-        border-color: #007bff;
-        background: #f0f8ff;
-    }
-    
-    .topic-option.selected {
-        border-color: #007bff;
-        background: #e3f2fd;
-    }
-    
-    .topic-option input[type="radio"] {
+    .form-check-input {
         margin-right: 0.75rem;
     }
     
+    .form-check-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .specific-topic-field {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
     .available-topics {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
         max-height: 200px;
         overflow-y: auto;
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-top: 1rem;
     }
     
     .topic-badge {
@@ -77,54 +123,133 @@
         color: #495057;
         padding: 0.5rem 1rem;
         margin: 0.25rem;
-        border-radius: 25px;
+        border-radius: 20px;
         font-size: 0.875rem;
         cursor: pointer;
         transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
     }
     
-    .topic-badge:hover {
-        background: #007bff;
-        color: white;
-    }
-    
+    .topic-badge:hover,
     .topic-badge.selected {
         background: #007bff;
         color: white;
+        border-color: #007bff;
     }
     
-    .difficulty-selector {
-        display: flex;
+    .difficulty-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
         margin-top: 1rem;
     }
     
-    .difficulty-option {
-        flex: 1;
-        text-align: center;
-        padding: 1rem;
+    .difficulty-card {
+        background: white;
         border: 2px solid #e9ecef;
         border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        background: white;
     }
     
-    .difficulty-option:hover {
+    .difficulty-card:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .difficulty-card.selected {
         border-color: #007bff;
         background: #f0f8ff;
     }
     
-    .difficulty-option.selected {
-        border-color: #007bff;
-        background: #e3f2fd;
+    .difficulty-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
     }
     
-    .difficulty-easy { border-left-color: #28a745; }
-    .difficulty-medium { border-left-color: #ffc107; }
-    .difficulty-hard { border-left-color: #dc3545; }
+    .difficulty-easy .difficulty-icon { color: #28a745; }
+    .difficulty-medium .difficulty-icon { color: #ffc107; }
+    .difficulty-hard .difficulty-icon { color: #dc3545; }
     
-    .generation-preview {
+    .quiz-config-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-control,
+    .form-select {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    
+    .sidebar {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+    
+    .tips-section {
+        margin-bottom: 2rem;
+    }
+    
+    .tips-section h6 {
+        color: #333;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .tip-card {
+        background: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .tip-card h6 {
+        margin: 0 0 0.5rem 0;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    
+    .tip-card ul {
+        margin: 0;
+        padding-left: 1rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .generate-section {
         background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
         border-radius: 15px;
@@ -133,23 +258,30 @@
         margin-top: 2rem;
     }
     
-    .custom-range {
-        -webkit-appearance: none;
-        appearance: none;
-        background: #e9ecef;
-        border-radius: 5px;
-        height: 8px;
-        outline: none;
+    .generate-section h3 {
+        margin: 0 0 1rem 0;
     }
     
-    .custom-range::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        background: #007bff;
-        border-radius: 50%;
-        height: 20px;
-        width: 20px;
-        cursor: pointer;
+    .generate-section p {
+        margin: 0 0 1.5rem 0;
+        opacity: 0.9;
+    }
+    
+    .btn-generate {
+        background: white;
+        color: #28a745;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        color: #1e7e34;
     }
     
     .loading-overlay {
@@ -159,11 +291,10 @@
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.8);
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        display: none;
     }
     
     .loading-content {
@@ -172,58 +303,105 @@
         border-radius: 15px;
         text-align: center;
         max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.75rem;
+    .loading-icon {
+        font-size: 3rem;
+        color: #007bff;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+        margin-top: 1rem;
+    }
+    
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .back-btn {
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .quiz-config-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .difficulty-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .main-container {
+            padding: 10px;
+        }
+        
+        .page-header {
+            padding: 1.5rem;
+        }
+        
+        .content-card {
+            padding: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="main-container">
     <!-- Back Button -->
-    <div class="mb-3">
+    <div class="back-btn">
         <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back to Files
         </a>
     </div>
     
-    <!-- Header -->
-    <div class="generation-header">
-        <h1 class="mb-3">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
             <i class="fas fa-magic me-3"></i>
             Generate AI-Powered Quiz
         </h1>
-        <p class="mb-0 opacity-90">
-            Create intelligent quizzes from your uploaded content using advanced AI technology
-        </p>
+        <p>Create intelligent quizzes from your uploaded content using advanced AI technology</p>
     </div>
     
-    <!-- Selected File Preview -->
+    <!-- File Preview -->
     {% if selected_file %}
-    <div class="file-preview">
-        <div class="d-flex align-items-center">
-            <div class="me-3">
+    <div class="content-card file-preview">
+        <div class="file-info">
+            <div class="file-icon">
                 {% if selected_file.file_type == 'pdf' %}
-                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                    <i class="fas fa-file-pdf text-danger"></i>
                 {% elif selected_file.file_type == 'docx' %}
-                    <i class="fas fa-file-word fa-2x text-primary"></i>
+                    <i class="fas fa-file-word text-primary"></i>
                 {% elif selected_file.file_type == 'pptx' %}
-                    <i class="fas fa-file-powerpoint fa-2x text-warning"></i>
+                    <i class="fas fa-file-powerpoint text-warning"></i>
                 {% else %}
-                    <i class="fas fa-file-alt fa-2x text-secondary"></i>
+                    <i class="fas fa-file-alt text-secondary"></i>
                 {% endif %}
             </div>
-            <div class="flex-grow-1">
-                <h5 class="mb-1">{{ selected_file.original_filename }}</h5>
-                <div class="text-muted small">
+            <div class="file-details flex-grow-1">
+                <h5>{{ selected_file.original_filename }}</h5>
+                <div class="file-meta">
                     <i class="fas fa-calendar me-1"></i>{{ selected_file.uploaded_at|date:"M d, Y" }}
                     <i class="fas fa-hdd ms-3 me-1"></i>{{ selected_file.file.size|filesizeformat }}
                     {% if selected_file.processed_topics.topics %}
-                    <i class="fas fa-tags ms-3 me-1"></i>{{ selected_file.processed_topics.topics|length }} topics
+                    <i class="fas fa-tags ms-3 me-1"></i>{{ selected_file.processed_topics.topics|length }} topics available
                     {% endif %}
                 </div>
             </div>
@@ -234,52 +412,62 @@
     </div>
     {% endif %}
     
-    <!-- Quiz Generation Form -->
-    <form method="post" id="quizGenerationForm">
-        {% csrf_token %}
-        
-        <div class="row">
-            <div class="col-lg-8">
-                <!-- File Selection -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Quiz Generation Form -->
+            <form method="post" id="quizGenerationForm">
+                {% csrf_token %}
+                
+                <!-- File Selection (if no file selected) -->
                 {% if not selected_file %}
-                <div class="form-section">
-                    <h4 class="mb-3">
-                        <i class="fas fa-file-upload text-primary me-2"></i>
+                <div class="content-card">
+                    <h4>
+                        <i class="fas fa-file-upload text-primary"></i>
                         Select File
                     </h4>
-                    {{ form.uploaded_file }}
-                    {% if form.uploaded_file.errors %}
-                        <div class="text-danger mt-2">{{ form.uploaded_file.errors }}</div>
-                    {% endif %}
+                    <div class="form-group">
+                        {{ form.uploaded_file }}
+                        {% if form.uploaded_file.errors %}
+                            <div class="error-message">{{ form.uploaded_file.errors }}</div>
+                        {% endif %}
+                    </div>
                 </div>
                 {% endif %}
                 
                 <!-- Content Selection -->
-                <div class="form-section">
-                    <h4 class="mb-3">
-                        <i class="fas fa-bullseye text-primary me-2"></i>
+                <div class="content-card">
+                    <h4>
+                        <i class="fas fa-bullseye text-primary"></i>
                         Content Focus
                     </h4>
                     
-                    <div class="topic-selection">
-                        {{ form.topic_selection }}
+                    <div class="topic-selection-area">
+                        {% for choice in form.topic_selection %}
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                        {% endfor %}
                         {% if form.topic_selection.errors %}
-                            <div class="text-danger mt-2">{{ form.topic_selection.errors }}</div>
+                            <div class="error-message">{{ form.topic_selection.errors }}</div>
                         {% endif %}
                         
-                        <div id="specificTopicField" class="mt-3" style="display: none;">
+                        <!-- Specific Topic Field -->
+                        <div id="specificTopicField" class="specific-topic-field" style="display: none;">
                             <label class="form-label">{{ form.specific_topic.label }}</label>
                             {{ form.specific_topic }}
-                            <div class="form-text">{{ form.specific_topic.help_text }}</div>
+                            <div class="form-text text-muted">{{ form.specific_topic.help_text }}</div>
                             {% if form.specific_topic.errors %}
-                                <div class="text-danger mt-2">{{ form.specific_topic.errors }}</div>
+                                <div class="error-message">{{ form.specific_topic.errors }}</div>
                             {% endif %}
                         </div>
                         
                         <!-- Available Topics -->
                         {% if selected_file and selected_file.processed_topics.topics %}
                         <div id="availableTopics" class="available-topics" style="display: none;">
-                            <h6>Available Topics (click to select):</h6>
+                            <h6><i class="fas fa-tags me-1"></i>Available Topics (click to select):</h6>
                             {% for topic in selected_file.processed_topics.topics %}
                             <span class="topic-badge" onclick="selectTopic('{{ topic }}')">
                                 {{ topic }}
@@ -291,129 +479,139 @@
                 </div>
                 
                 <!-- Quiz Configuration -->
-                <div class="form-section">
-                    <h4 class="mb-3">
-                        <i class="fas fa-cogs text-primary me-2"></i>
+                <div class="content-card">
+                    <h4>
+                        <i class="fas fa-cogs text-primary"></i>
                         Quiz Configuration
                     </h4>
                     
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div class="quiz-config-grid">
+                        <div class="form-group">
                             <label class="form-label">{{ form.num_questions.label }}</label>
-                            <div class="d-flex align-items-center">
-                                {{ form.num_questions }}
-                                <span class="ms-3 text-muted" id="questionCount">10 questions</span>
+                            {{ form.num_questions }}
+                            <div class="form-text text-muted">
+                                <span id="questionCount">10 questions</span> will be generated
                             </div>
                             {% if form.num_questions.errors %}
-                                <div class="text-danger mt-2">{{ form.num_questions.errors }}</div>
+                                <div class="error-message">{{ form.num_questions.errors }}</div>
                             {% endif %}
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="form-group">
                             <label class="form-label">{{ form.category.label }}</label>
                             {{ form.category }}
                             {% if form.category.errors %}
-                                <div class="text-danger mt-2">{{ form.category.errors }}</div>
+                                <div class="error-message">{{ form.category.errors }}</div>
                             {% endif %}
                         </div>
                     </div>
                     
-                    <div class="mt-4">
+                    <!-- Difficulty Selection -->
+                    <div class="form-group">
                         <label class="form-label">{{ form.difficulty.label }}</label>
-                        <div class="difficulty-selector">
-                            <div class="difficulty-option difficulty-easy" data-value="EASY">
-                                <i class="fas fa-smile fa-2x text-success mb-2"></i>
+                        <div class="difficulty-grid">
+                            <div class="difficulty-card difficulty-easy" data-value="EASY">
+                                <div class="difficulty-icon">
+                                    <i class="fas fa-smile"></i>
+                                </div>
                                 <h6>Easy</h6>
                                 <small class="text-muted">Basic concepts and definitions</small>
                             </div>
-                            <div class="difficulty-option difficulty-medium selected" data-value="MEDIUM">
-                                <i class="fas fa-meh fa-2x text-warning mb-2"></i>
+                            <div class="difficulty-card difficulty-medium selected" data-value="MEDIUM">
+                                <div class="difficulty-icon">
+                                    <i class="fas fa-meh"></i>
+                                </div>
                                 <h6>Medium</h6>
                                 <small class="text-muted">Application and understanding</small>
                             </div>
-                            <div class="difficulty-option difficulty-hard" data-value="HARD">
-                                <i class="fas fa-frown fa-2x text-danger mb-2"></i>
+                            <div class="difficulty-card difficulty-hard" data-value="HARD">
+                                <div class="difficulty-icon">
+                                    <i class="fas fa-frown"></i>
+                                </div>
                                 <h6>Hard</h6>
                                 <small class="text-muted">Analysis and synthesis</small>
                             </div>
                         </div>
                         {{ form.difficulty }}
                         {% if form.difficulty.errors %}
-                            <div class="text-danger mt-2">{{ form.difficulty.errors }}</div>
+                            <div class="error-message">{{ form.difficulty.errors }}</div>
                         {% endif %}
                     </div>
                 </div>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <div class="form-section">
-                    <h5 class="mb-3">
-                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                
+                <!-- Generate Section -->
+                <div class="generate-section">
+                    <h3>
+                        <i class="fas fa-rocket me-2"></i>
+                        Ready to Generate Your Quiz?
+                    </h3>
+                    <p>
+                        AI will analyze your content and create <span id="previewQuestionCount">10</span> 
+                        <span id="previewDifficulty">medium</span> difficulty questions.
+                    </p>
+                    <button type="submit" class="btn-generate" id="generateButton">
+                        <i class="fas fa-magic me-2"></i>
+                        Generate Quiz with AI
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sidebar">
+                <div class="tips-section">
+                    <h6>
+                        <i class="fas fa-lightbulb text-warning"></i>
                         AI Generation Tips
-                    </h5>
+                    </h6>
                     
-                    <div class="alert alert-info small">
-                        <h6><i class="fas fa-robot me-1"></i>How AI Quiz Generation Works:</h6>
-                        <ul class="mb-0 ps-3">
-                            <li>AI analyzes your content structure</li>
+                    <div class="tip-card">
+                        <h6><i class="fas fa-robot me-1"></i>How AI Works:</h6>
+                        <ul>
+                            <li>Analyzes your content structure</li>
                             <li>Identifies key concepts and topics</li>
                             <li>Generates diverse question types</li>
                             <li>Ensures appropriate difficulty level</li>
-                            <li>Creates realistic distractors</li>
                         </ul>
                     </div>
                     
-                    <div class="alert alert-success small">
-                        <h6><i class="fas fa-tips me-1"></i>Best Practices:</h6>
-                        <ul class="mb-0 ps-3">
+                    <div class="tip-card">
+                        <h6><i class="fas fa-star me-1"></i>Best Practices:</h6>
+                        <ul>
                             <li>Select specific topics for focused quizzes</li>
                             <li>Start with 10-15 questions</li>
                             <li>Choose appropriate difficulty</li>
                             <li>Review and edit generated questions</li>
                         </ul>
                     </div>
-                    
-                    {% if selected_file %}
-                    <div class="mt-3">
-                        <h6>Content Statistics:</h6>
-                        <div class="small text-muted">
-                            <div><strong>Text Length:</strong> {{ selected_file.extracted_text|length }} characters</div>
-                            <div><strong>Estimated Words:</strong> {{ selected_file.extracted_text|wordcount }}</div>
-                            {% if selected_file.processed_topics.topics %}
-                            <div><strong>Topics Available:</strong> {{ selected_file.processed_topics.topics|length }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
+                
+                {% if selected_file %}
+                <div class="tips-section">
+                    <h6><i class="fas fa-chart-bar text-info"></i>Content Statistics</h6>
+                    <div class="tip-card">
+                        <div><strong>Text Length:</strong> {{ selected_file.extracted_text|length|floatformat:0 }} characters</div>
+                        <div><strong>Estimated Words:</strong> {% widthratio selected_file.extracted_text|length 5 1 %}</div>
+                        {% if selected_file.processed_topics.topics %}
+                        <div><strong>Topics Available:</strong> {{ selected_file.processed_topics.topics|length }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
-        
-        <!-- Generation Preview -->
-        <div class="generation-preview">
-            <h3 class="mb-3">
-                <i class="fas fa-rocket me-2"></i>
-                Ready to Generate Your Quiz?
-            </h3>
-            <p class="mb-4">
-                AI will analyze your content and create <span id="previewQuestionCount">10</span> 
-                <span id="previewDifficulty">medium</span> difficulty questions.
-            </p>
-            <button type="submit" class="btn btn-light btn-lg" id="generateButton">
-                <i class="fas fa-magic me-2"></i>
-                Generate Quiz with AI
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-content">
-        <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+        <div class="loading-icon">
+            <i class="fas fa-robot"></i>
+        </div>
         <h4>AI is Generating Your Quiz...</h4>
-        <p class="text-muted mb-4">
+        <p class="text-muted">
             This may take 30-60 seconds while we analyze your content and create intelligent questions.
         </p>
         <div class="progress">
@@ -430,11 +628,18 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Topic selection handling
+    // Initialize form elements
     const topicRadios = document.querySelectorAll('input[name="topic_selection"]');
     const specificTopicField = document.getElementById('specificTopicField');
     const availableTopics = document.getElementById('availableTopics');
+    const difficultyCards = document.querySelectorAll('.difficulty-card');
+    const difficultyInput = document.getElementById('{{ form.difficulty.id_for_label }}');
+    const questionInput = document.getElementById('{{ form.num_questions.id_for_label }}');
+    const questionCount = document.getElementById('questionCount');
+    const form = document.getElementById('quizGenerationForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
     
+    // Topic selection handling
     topicRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'specific_topic') {
@@ -448,31 +653,36 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Difficulty selection
-    const difficultyOptions = document.querySelectorAll('.difficulty-option');
-    const difficultyInput = document.getElementById('{{ form.difficulty.id_for_label }}');
-    
-    difficultyOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            difficultyOptions.forEach(opt => opt.classList.remove('selected'));
+    difficultyCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove selected class from all cards
+            difficultyCards.forEach(c => c.classList.remove('selected'));
+            // Add selected class to clicked card
             this.classList.add('selected');
+            // Update hidden input
             difficultyInput.value = this.dataset.value;
+            // Update preview
             updatePreview();
         });
     });
     
-    // Question count slider
-    const questionInput = document.getElementById('{{ form.num_questions.id_for_label }}');
-    const questionCount = document.getElementById('questionCount');
-    
-    questionInput.addEventListener('input', function() {
-        questionCount.textContent = this.value + ' questions';
-        updatePreview();
-    });
+    // Question count handling
+    if (questionInput) {
+        questionInput.addEventListener('input', function() {
+            const count = this.value;
+            questionCount.textContent = count + ' questions';
+            updatePreview();
+        });
+    }
     
     // Form submission
-    document.getElementById('quizGenerationForm').addEventListener('submit', function(e) {
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    });
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+            }
+        });
+    }
     
     // Initial setup
     const selectedTopicRadio = document.querySelector('input[name="topic_selection"]:checked');
@@ -481,9 +691,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (availableTopics) availableTopics.style.display = 'block';
     }
     
+    // Initial preview update
     updatePreview();
 });
 
+// Topic selection from badges
 function selectTopic(topic) {
     const specificTopicInput = document.getElementById('{{ form.specific_topic.id_for_label }}');
     const topicBadges = document.querySelectorAll('.topic-badge');
@@ -493,15 +705,25 @@ function selectTopic(topic) {
     
     // Select clicked topic
     event.target.classList.add('selected');
-    specificTopicInput.value = topic;
+    if (specificTopicInput) {
+        specificTopicInput.value = topic;
+    }
 }
 
+// Update preview information
 function updatePreview() {
-    const questionCount = document.getElementById('{{ form.num_questions.id_for_label }}').value;
-    const difficulty = document.getElementById('{{ form.difficulty.id_for_label }}').value.toLowerCase();
+    const questionInput = document.getElementById('{{ form.num_questions.id_for_label }}');
+    const difficultyInput = document.getElementById('{{ form.difficulty.id_for_label }}');
+    const previewQuestionCount = document.getElementById('previewQuestionCount');
+    const previewDifficulty = document.getElementById('previewDifficulty');
     
-    document.getElementById('previewQuestionCount').textContent = questionCount;
-    document.getElementById('previewDifficulty').textContent = difficulty;
+    if (questionInput && previewQuestionCount) {
+        previewQuestionCount.textContent = questionInput.value;
+    }
+    
+    if (difficultyInput && previewDifficulty) {
+        previewDifficulty.textContent = difficultyInput.value.toLowerCase();
+    }
 }
 </script>
 {% endblock %}

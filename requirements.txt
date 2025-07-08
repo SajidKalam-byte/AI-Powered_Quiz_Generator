@@ -1,0 +1,129 @@
+# Core Django Framework
+Django==5.2.3
+djangorestframework==3.16.0
+
+# Database
+psycopg2-binary==2.9.9  # For PostgreSQL (production)
+
+# Environment & Configuration
+python-decouple==3.8
+python-dotenv==1.0.1
+
+# File Processing
+PyPDF2==3.0.1
+python-docx==1.1.2
+python-pptx==0.6.23
+openpyxl==3.1.5  # Excel support
+Pillow==11.3.0
+
+# AI & ML
+openai==1.57.2  # Added OpenAI as backup AI provider
+google-generativeai==0.8.3  # Official Gemini SDK
+tiktoken==0.9.0  # Token counting for AI prompts
+
+# Text Processing & NLP
+nltk==3.8.1
+spacy==3.8.2
+textstat==0.7.3
+langdetect==1.0.9
+
+# HTTP Requests
+requests==2.32.4
+httpx==0.28.1  # Modern async HTTP client
+
+# Data Processing
+pandas==2.2.3
+numpy==2.3.1
+
+# Document Export
+reportlab==4.2.5  # PDF generation
+python-docx==1.1.2  # Already included above
+weasyprint==63.1  # HTML to PDF
+
+# Async Task Processing
+celery==5.4.0
+redis==5.2.1
+django-celery-beat==2.7.0
+
+# Security & Authentication
+cryptography==44.0.0
+PyJWT==2.10.1
+django-cors-headers==4.6.0
+django-ratelimit==4.1.0
+
+# File Validation & Security
+python-magic==0.4.27
+bleach==6.2.0
+
+# Performance & Monitoring
+django-debug-toolbar==4.4.6
+sentry-sdk==2.20.0
+django-extensions==3.2.3
+
+# API Documentation
+drf-spectacular==0.27.2
+
+# Storage (for production)
+django-storages==1.14.4
+boto3==1.35.89  # AWS S3 support
+
+# Utility Libraries
+python-slugify==8.0.4
+Faker==33.3.0  # For test data generation
+factory-boy==3.3.1  # Model factories for testing
+
+# Development Tools
+black==24.10.0
+flake8==7.1.1
+pytest==8.3.4
+pytest-django==4.9.0
+coverage==7.6.9
+
+# Date/Time
+python-dateutil==2.9.0
+
+# Image Processing
+pillow==11.3.0  # Already included
+
+# Progress Bars & UI
+tqdm==4.67.1
+
+# Data Validation
+marshmallow==3.23.2
+django-filter==24.3
+
+# Caching
+django-redis==5.4.0
+
+# Logging
+structlog==24.4.0
+
+# WebSocket Support (for real-time features)
+channels==4.2.0
+channels-redis==4.2.0
+
+# Job Scheduler
+django-crontab==0.7.1
+
+# File Upload Progress
+django-cleanup==8.1.0
+
+# Enhanced Forms
+django-crispy-forms==2.3
+crispy-bootstrap5==2025.4.11
+
+# Time Zone Support
+pytz==2024.2
+
+# UUID Generation
+shortuuid==1.0.13
+
+# Mathematical Operations
+sympy==1.14.0
+
+# Background Tasks (Alternative to Celery for simple cases)
+django-rq==2.10.2
+rq==2.0.0
+
+# Markdown Support
+markdown==3.7

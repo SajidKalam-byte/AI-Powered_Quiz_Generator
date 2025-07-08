@@ -1,207 +1,536 @@
 {% extends dashboard_template %}
+{% load static %}
+
+{% block title %}Upload Content - QuizHub{% endblock %}
 
 {% block extra_css %}
 <style>
-    .upload-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --surface: rgba(255, 255, 255, 0.95);
+        --glass: rgba(255, 255, 255, 0.1);
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --border-color: rgba(255, 255, 255, 0.2);
+        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.3);
     }
 
-    .upload-zone {
-        border: 3px dashed #e0e7ff;
-        border-radius: 20px;
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .upload-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .page-header {
+        background: var(--surface);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
         padding: 3rem 2rem;
+        margin-bottom: 2rem;
         text-align: center;
-        background: linear-gradient(135deg, #f8faff 0%, #e0e7ff 100%);
-        transition: all 0.3s ease;
-        cursor: pointer;
+        box-shadow: var(--shadow-lg);
         position: relative;
         overflow: hidden;
     }
 
-    .upload-zone:hover {
-        border-color: #6366f1;
-        background: linear-gradient(135deg, #eef2ff 0%, #ddd6fe 100%);
-        transform: translateY(-2px);
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
     }
 
+    .page-header h1 {
+        margin: 0 0 1rem 0;
+        font-weight: 800;
+        font-size: 2.5rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        font-weight: 500;
+        opacity: 0.8;
+    }
+
+    .upload-card {
+        background: var(--surface);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .upload-card:hover::before {
+        opacity: 1;
+    }
+
+    .upload-zone {
+        border: 3px dashed rgba(102, 126, 234, 0.3);
+        border-radius: 20px;
+        padding: 4rem 3rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        transition: all 0.3s ease;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+    }
+
+    .upload-zone:hover::before,
+    .upload-zone.dragover::before {
+        width: 200%;
+        height: 200%;
+    }
+
+    .upload-zone:hover,
     .upload-zone.dragover {
-        border-color: #4f46e5;
-        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-        transform: scale(1.02);
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-lg);
     }
 
     .upload-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 1.5rem;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 2rem;
+        background: var(--primary-gradient);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 3rem;
         color: white;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .upload-zone:hover .upload-icon {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6);
     }
 
     .upload-text h3 {
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: 1.5rem;
+        position: relative;
+        z-index: 2;
     }
 
     .upload-text p {
-        color: #64748b;
-        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-browse {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        position: relative;
+        z-index: 2;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-browse:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-browse:active {
+        transform: translateY(-1px) scale(1.02);
     }
 
     .file-types {
         display: flex;
         justify-content: center;
-        gap: 1rem;
-        margin-top: 1.5rem;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 2;
     }
 
     .file-type {
-        padding: 0.5rem 1rem;
-        background: white;
+        padding: 0.75rem 1.5rem;
+        background: var(--surface);
+        backdrop-filter: blur(10px);
         border-radius: 50px;
-        border: 2px solid #e2e8f0;
+        border: 1px solid var(--border-color);
         font-size: 0.9rem;
-        font-weight: 500;
-        color: #475569;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-weight: 600;
+        color: var(--text-primary);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .file-type:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .selected-file {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        display: none;
+        animation: slideInUp 0.3s ease;
+    }
+
+    .selected-file.show {
+        display: block;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .progress-container {
+        margin: 1.5rem 0;
+        display: none;
+        animation: slideInUp 0.3s ease;
+    }
+
+    .progress {
+        height: 12px;
+        border-radius: 50px;
+        background: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar {
+        background: var(--success-gradient);
+        border-radius: 50px;
+        transition: width 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .form-section {
+        margin-top: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        padding: 1rem;
+        font-size: 1rem;
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-submit {
+        background: var(--success-gradient);
+        color: white;
+        border: none;
+        padding: 1.25rem 3rem;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        width: 100%;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-submit:hover:not(:disabled)::before {
+        left: 100%;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.4);
+        color: white;
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .recent-files {
-        background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        background: var(--surface);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: var(--shadow-lg);
         margin-top: 2rem;
+    }
+
+    .recent-files h4 {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
     }
 
     .file-item {
         display: flex;
         align-items: center;
-        padding: 1rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        margin-bottom: 1rem;
+        justify-content: space-between;
+        padding: 1.5rem;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
         transition: all 0.3s ease;
-        background: #f8fafc;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
+        backdrop-filter: blur(10px);
     }
 
     .file-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border-color: #6366f1;
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
     }
 
     .file-icon {
-        width: 48px;
-        height: 48px;
+        width: 50px;
+        height: 50px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 1rem;
+        margin-right: 1.5rem;
         font-size: 1.5rem;
         color: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .file-icon.pdf { background: linear-gradient(135deg, #dc2626, #ef4444); }
-    .file-icon.txt { background: linear-gradient(135deg, #059669, #10b981); }
-    .file-icon.docx { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-    .file-icon.pptx { background: linear-gradient(135deg, #ea580c, #f97316); }
+    .file-icon.pdf { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+    .file-icon.docx { background: linear-gradient(135deg, #4dabf7, #339af0); }
+    .file-icon.txt { background: linear-gradient(135deg, #51cf66, #40c057); }
+    .file-icon.pptx { background: linear-gradient(135deg, #ff8cc8, #ff6b9d); }
 
-    .file-info h6 {
-        margin: 0 0 0.25rem 0;
-        color: #1e293b;
+    .file-details h6 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
         font-weight: 600;
+        font-size: 1.1rem;
     }
 
     .file-meta {
-        font-size: 0.85rem;
-        color: #64748b;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
     .file-status {
-        margin-left: auto;
-        padding: 0.25rem 0.75rem;
+        padding: 0.5rem 1rem;
         border-radius: 50px;
-        font-size: 0.8rem;
-        font-weight: 500;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .status-completed { background: #dcfce7; color: #166534; }
-    .status-processing { background: #fef3c7; color: #92400e; }
-    .status-failed { background: #fee2e2; color: #991b1b; }
-    .status-pending { background: #e0e7ff; color: #3730a3; }
+    .status-completed { 
+        background: linear-gradient(135deg, #d4edda, #c3e6cb); 
+        color: #155724; 
+        border: 1px solid #c3e6cb;
+    }
+    .status-processing { 
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7); 
+        color: #856404; 
+        border: 1px solid #ffeaa7;
+    }
+    .status-failed { 
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
+        color: #721c24; 
+        border: 1px solid #f5c6cb;
+    }
+    .status-pending { 
+        background: linear-gradient(135deg, #d1ecf1, #bee5eb); 
+        color: #0c5460; 
+        border: 1px solid #bee5eb;
+    }
 
-    .progress-bar {
-        width: 100%;
-        height: 6px;
-        background: #e2e8f0;
-        border-radius: 3px;
-        overflow: hidden;
+    .error-message {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 12px;
+        padding: 1.25rem;
         margin-top: 1rem;
-        display: none;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #6366f1, #8b5cf6);
-        border-radius: 3px;
-        transition: width 0.3s ease;
-        width: 0%;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border: 1px solid #e2e8f0;
-        transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-4px);
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto 1rem;
-        border-radius: 50%;
+        font-weight: 500;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        color: var(--text-primary);
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--primary-gradient);
+        border-color: transparent;
         color: white;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1e293b;
-        line-height: 1;
-    }
-
-    .stat-label {
-        color: #64748b;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
+        transform: translateY(-2px);
     }
 
     @media (max-width: 768px) {
@@ -209,24 +538,71 @@
             padding: 1rem;
         }
         
+        .page-header {
+            padding: 2rem 1.5rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .upload-card {
+            padding: 2rem;
+        }
+        
         .upload-zone {
-            padding: 2rem 1rem;
+            padding: 3rem 1.5rem;
+        }
+        
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
         }
         
         .file-types {
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 1rem;
         }
         
         .file-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .file-info {
             flex-direction: column;
             text-align: center;
         }
         
         .file-icon {
             margin-right: 0;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
+        
+        .recent-files {
+            padding: 2rem;
+        }
+    }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Focus states for better accessibility */
+    .upload-zone:focus-within {
+        outline: 3px solid rgba(102, 126, 234, 0.5);
+        outline-offset: 2px;
+    }
+
+    .btn:focus {
+        outline: 3px solid rgba(102, 126, 234, 0.5);
+        outline-offset: 2px;
     }
 </style>
 {% endblock %}
@@ -234,320 +610,575 @@
 {% block content %}
 <div class="upload-container">
     <!-- Page Header -->
-    <div class="text-center mb-5">
-        <h1 class="h2 fw-bold text-primary mb-3">
-            <i class="bi bi-cloud-upload me-2"></i>Upload Educational Content
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-cloud-upload-alt"></i>
+            Upload Educational Content
         </h1>
-        <p class="text-muted fs-5">Upload syllabus, textbooks, or educational documents to generate AI-powered quizzes</p>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                <i class="bi bi-file-earmark-text"></i>
-            </div>
-            <div class="stat-number">{{ recent_files|length }}</div>
-            <div class="stat-label">Recent Files</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-number">
-                {% with completed_count=recent_files|length %}{{ completed_count }}{% endwith %}
-            </div>
-            <div class="stat-label">Processed Files</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
-                <i class="bi bi-journal-plus"></i>
-            </div>
-            <div class="stat-number">0</div>
-            <div class="stat-label">Quizzes Generated</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #ea580c, #f97316);">
-                <i class="bi bi-robot"></i>
-            </div>
-            <div class="stat-number">AI</div>
-            <div class="stat-label">Powered</div>
-        </div>
+        <p>Transform your educational materials into AI-powered interactive quizzes</p>
     </div>
 
     <!-- Upload Form -->
-    <div class="card border-0 shadow-lg">
-        <div class="card-body p-0">
-            <form method="post" enctype="multipart/form-data" id="uploadForm" class="p-4">
-                {% csrf_token %}
-                
-                <!-- Upload Zone -->
-                <div class="upload-zone" id="uploadZone">
-                    <div class="upload-icon">
-                        <i class="bi bi-cloud-upload"></i>
-                    </div>
-                    <div class="upload-text">
-                        <h3>Drag & Drop Your Files Here</h3>
-                        <p>or click to browse and select files</p>
-                        <button type="button" class="btn btn-primary px-4" id="browseBtn">
-                            <i class="bi bi-folder2-open me-2"></i>Browse Files
-                        </button>
-                    </div>
-                    
-                    <div class="file-types">
-                        <span class="file-type">PDF</span>
-                        <span class="file-type">TXT</span>
-                        <span class="file-type">DOCX</span>
-                        <span class="file-type">PPTX</span>
-                    </div>
-                    
-                    {{ form.file }}
+    <div class="upload-card">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
                 </div>
-
-                <!-- Description Field -->
-                <div class="mt-4">
-                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
-                        <i class="bi bi-chat-text me-2 text-primary"></i>Description (Optional)
-                    </label>
-                    {{ form.description }}
-                    {% if form.description.errors %}
-                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" disabled>
-                        <i class="bi bi-upload me-2"></i>Process & Upload
+                <div class="upload-text">
+                    <h3>Drag & Drop your files here</h3>
+                    <p>or click anywhere to browse and select files</p>
+                    <button type="button" class="btn-browse" id="browseBtn">
+                        <i class="fas fa-folder-open me-2"></i>Choose Files
                     </button>
                 </div>
-            </form>
-        </div>
+                
+                <div class="file-types">
+                    <span class="file-type">
+                        <i class="fas fa-file-pdf me-1"></i>PDF
+                    </span>
+                    <span class="file-type">
+                        <i class="fas fa-file-word me-1"></i>DOCX
+                    </span>
+                    <span class="file-type">
+                        <i class="fas fa-file-alt me-1"></i>TXT
+                    </span>
+                    <span class="file-type">
+                        <i class="fas fa-file-powerpoint me-1"></i>PPTX
+                    </span>
+                </div>
+            </div>
+
+            <!-- Hidden file input -->
+            {{ form.file }}
+
+            <!-- Selected File Display -->
+            <div id="selectedFile" class="selected-file">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-file me-3 text-primary fs-4"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1" id="selectedFileName"></h6>
+                        <small class="text-muted" id="selectedFileSize"></small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearSelectedFile()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progressContainer">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold">Uploading file...</span>
+                    <span id="progressPercent" class="fw-bold">0%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: 0%" id="progressBar"></div>
+                </div>
+            </div>
+
+            <!-- Description Field -->
+            <div class="form-section">
+                <label for="{{ form.description.id_for_label }}" class="form-label">
+                    <i class="fas fa-comment-alt me-2"></i>{{ form.description.label }}
+                </label>
+                {{ form.description }}
+                {% if form.description.help_text %}
+                    <div class="form-text text-muted mt-2">{{ form.description.help_text }}</div>
+                {% endif %}
+                {% if form.description.errors %}
+                    <div class="error-message mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ form.description.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                <i class="fas fa-magic me-2"></i>Upload & Generate Quiz
+            </button>
+
+            <!-- Form Errors -->
+            {% if form.file.errors %}
+                <div class="error-message mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ form.file.errors.0 }}
+                </div>
+            {% endif %}
+        </form>
     </div>
 
     <!-- Recent Files -->
     {% if recent_files %}
     <div class="recent-files">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="h4 fw-bold text-dark mb-0">
-                <i class="bi bi-clock-history me-2 text-primary"></i>Recent Files
-            </h3>
-            <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-primary">
-                <i class="bi bi-list me-2"></i>View All Files
-            </a>
-        </div>
-
+        <h4 class="mb-4">
+            <i class="fas fa-history me-2"></i>Recent Uploads
+        </h4>
+        
         {% for file in recent_files %}
         <div class="file-item">
-            <div class="file-icon {{ file.file_type }}">
-                {% if file.file_type == 'pdf' %}<i class="bi bi-file-earmark-pdf"></i>
-                {% elif file.file_type == 'txt' %}<i class="bi bi-file-earmark-text"></i>
-                {% elif file.file_type == 'docx' %}<i class="bi bi-file-earmark-word"></i>
-                {% elif file.file_type == 'pptx' %}<i class="bi bi-file-earmark-ppt"></i>
-                {% else %}<i class="bi bi-file-earmark"></i>{% endif %}
-            </div>
-            <div class="file-info flex-grow-1">
-                <h6>{{ file.original_filename }}</h6>
-                <div class="file-meta">
-                    <span><i class="bi bi-calendar3 me-1"></i>{{ file.uploaded_at|date:"M j, Y" }}</span>
-                    <span class="ms-3"><i class="bi bi-hdd me-1"></i>{{ file.file_size_mb }} MB</span>
-                    {% if file.topic_count %}
-                    <span class="ms-3"><i class="bi bi-tags me-1"></i>{{ file.topic_count }} topics</span>
+            <div class="file-info">
+                <div class="file-icon {{ file.file_type|lower }}">
+                    {% if file.file_type == 'pdf' %}
+                        <i class="fas fa-file-pdf"></i>
+                    {% elif file.file_type == 'docx' %}
+                        <i class="fas fa-file-word"></i>
+                    {% elif file.file_type == 'txt' %}
+                        <i class="fas fa-file-alt"></i>
+                    {% elif file.file_type == 'pptx' %}
+                        <i class="fas fa-file-powerpoint"></i>
+                    {% else %}
+                        <i class="fas fa-file"></i>
                     {% endif %}
                 </div>
+                <div class="file-details">
+                    <h6>{{ file.original_filename }}</h6>
+                    <div class="file-meta">
+                        <span><i class="fas fa-calendar me-1"></i>{{ file.uploaded_at|date:"M d, Y" }}</span>
+                        <span><i class="fas fa-weight me-1"></i>{{ file.file.size|filesizeformat }}</span>
+                        {% if file.processed_topics.topics %}
+                        <span><i class="fas fa-tags me-1"></i>{{ file.processed_topics.topics|length }} topics</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="file-status status-{{ file.status }}">
-                {% if file.status == 'completed' %}<i class="bi bi-check-circle me-1"></i>Completed
-                {% elif file.status == 'processing' %}<i class="bi bi-hourglass-split me-1"></i>Processing
-                {% elif file.status == 'failed' %}<i class="bi bi-x-circle me-1"></i>Failed
-                {% else %}<i class="bi bi-clock me-1"></i>Pending{% endif %}
-            </div>
-            <div class="ms-3">
-                <a href="{% url 'textprocessor:file_detail' file.id %}" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-eye"></i>
+            
+            <div class="d-flex align-items-center gap-2">
+                <span class="file-status status-{{ file.status }}">
+                    {% if file.status == 'completed' %}
+                        <i class="fas fa-check-circle me-1"></i>Ready
+                    {% elif file.status == 'processing' %}
+                        <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                    {% else %}
+                        <i class="fas fa-exclamation-triangle me-1"></i>Failed
+                    {% endif %}
+                </span>
+                
+                {% if file.status == 'completed' %}
+                    <a href="{% url 'textprocessor:generate_quiz' %}?file={{ file.id }}" 
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-magic me-1"></i>Generate Quiz
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'textprocessor:file_detail' file.id %}" 
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i>View
                 </a>
             </div>
         </div>
         {% endfor %}
     </div>
     {% endif %}
-
-    <!-- Quick Actions -->
-    <div class="text-center mt-5 pt-4 border-top">
-        <h5 class="fw-semibold mb-3">What would you like to do?</h5>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <a href="{% url 'textprocessor:generate_quiz' %}" class="btn btn-outline-primary w-100 py-3">
-                    <i class="bi bi-robot d-block fs-3 mb-2"></i>
-                    Generate Quiz from Files
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-success w-100 py-3">
-                    <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
-                    Create New Quiz
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-info w-100 py-3">
-                    <i class="bi bi-list-check d-block fs-3 mb-2"></i>
-                    Browse Quizzes
-                </a>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // DOM element references
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('{{ form.file.id_for_label }}');
     const browseBtn = document.getElementById('browseBtn');
-    const submitBtn = document.getElementById('submitBtn');
+    const selectedFile = document.getElementById('selectedFile');
+    const selectedFileName = document.getElementById('selectedFileName');
+    const selectedFileSize = document.getElementById('selectedFileSize');
     const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    
+    // Configuration
+    const allowedExtensions = ['.pdf', '.txt', '.docx', '.pptx'];
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    
+    // Debug logging
+    console.log('Upload page initialized');
+    console.log('File input found:', fileInput);
+    console.log('File input ID:', fileInput ? fileInput.id : 'Not found');
+    
+    // Verify all required elements exist
+    if (!fileInput) {
+        console.error('Critical: File input element not found!');
+        return;
+    }
+    
+    // Browse button click handler
+    if (browseBtn) {
+        browseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Browse button clicked');
+            
+            try {
+                fileInput.click();
+                console.log('File input click triggered');
+            } catch (error) {
+                console.error('Error triggering file input:', error);
+                showNotification('Error opening file browser', 'error');
+            }
+        });
+    }
 
-    // Hide the default file input
-    fileInput.style.display = 'none';
-
-    // Browse button click
-    browseBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    // Upload zone click
-    uploadZone.addEventListener('click', (e) => {
-        if (e.target !== browseBtn) {
-            fileInput.click();
-        }
-    });
+    // Upload zone click handler (excluding browse button)
+    if (uploadZone) {
+        uploadZone.addEventListener('click', function(e) {
+            // Don't trigger if clicking the browse button or its contents
+            if (e.target === browseBtn || browseBtn.contains(e.target)) {
+                return;
+            }
+            
+            console.log('Upload zone clicked');
+            
+            try {
+                fileInput.click();
+                console.log('File input click triggered from zone');
+            } catch (error) {
+                console.error('Error triggering file input from zone:', error);
+                showNotification('Error opening file browser', 'error');
+            }
+        });
+    }
 
     // Drag and drop functionality
-    uploadZone.addEventListener('dragover', (e) => {
+    if (uploadZone) {
+        // Prevent default browser drag behavior
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop area
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        uploadZone.addEventListener('drop', handleDrop, false);
+    }
+
+    function preventDefaults(e) {
         e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
         uploadZone.classList.add('dragover');
-    });
+        console.log('Drag highlight activated');
+    }
 
-    uploadZone.addEventListener('dragleave', () => {
+    function unhighlight(e) {
         uploadZone.classList.remove('dragover');
-    });
+        console.log('Drag highlight removed');
+    }
 
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
+    function handleDrop(e) {
+        console.log('Files dropped');
+        const dt = e.dataTransfer;
+        const files = dt.files;
         
-        const files = e.dataTransfer.files;
         if (files.length > 0) {
-            fileInput.files = files;
-            handleFileSelection();
-        }
-    });
-
-    // File input change
-    fileInput.addEventListener('change', handleFileSelection);
-
-    function handleFileSelection() {
-        const file = fileInput.files[0];
-        if (file) {
-            // Validate file type
-            const allowedTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
-            
-            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|txt|docx|pptx)$/i)) {
-                alert('Please select a valid file type (PDF, TXT, DOCX, PPTX)');
-                fileInput.value = '';
-                submitBtn.disabled = true;
-                return;
-            }
-
-            // Validate file size (10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                alert('File size must be less than 10MB');
-                fileInput.value = '';
-                submitBtn.disabled = true;
-                return;
-            }
-
-            // Update UI
-            updateUploadZone(file);
-            submitBtn.disabled = false;
-        } else {
-            resetUploadZone();
-            submitBtn.disabled = true;
+            console.log('Processing dropped file:', files[0].name);
+            handleFiles([files[0]]); // Only take the first file
         }
     }
 
-    function updateUploadZone(file) {
-        const uploadText = uploadZone.querySelector('.upload-text');
-        uploadText.innerHTML = `
-            <h3><i class="bi bi-check-circle text-success me-2"></i>File Selected</h3>
-            <p><strong>${file.name}</strong> (${(file.size / (1024 * 1024)).toFixed(2)} MB)</p>
-            <button type="button" class="btn btn-outline-secondary" id="changeBrse">
-                <i class="bi bi-arrow-repeat me-2"></i>Choose Different File
-            </button>
-        `;
-        
-        // Re-bind browse button
-        document.getElementById('changeBrse').addEventListener('click', () => {
-            fileInput.click();
+    // File input change handler
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            console.log('File input changed');
+            if (e.target.files && e.target.files.length > 0) {
+                console.log('Selected file:', e.target.files[0].name);
+                handleFiles([e.target.files[0]]);
+            }
         });
     }
 
-    function resetUploadZone() {
-        const uploadText = uploadZone.querySelector('.upload-text');
-        uploadText.innerHTML = `
-            <h3>Drag & Drop Your Files Here</h3>
-            <p>or click to browse and select files</p>
-            <button type="button" class="btn btn-primary px-4" id="browseBtn">
-                <i class="bi bi-folder2-open me-2"></i>Browse Files
-            </button>
-        `;
-        
-        // Re-bind browse button
-        document.getElementById('browseBtn').addEventListener('click', () => {
-            fileInput.click();
-        });
-    }
-
-    // Form submission
-    uploadForm.addEventListener('submit', function(e) {
-        if (!fileInput.files[0]) {
-            e.preventDefault();
-            alert('Please select a file to upload');
+    function handleFiles(files) {
+        if (files.length === 0) {
+            console.log('No files to handle');
             return;
         }
-
-        // Show progress bar
-        progressBar.style.display = 'block';
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
-
-        // Simulate progress (in real app, use proper upload progress)
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 90) {
-                progress = 90;
-                clearInterval(progressInterval);
-            }
-            progressFill.style.width = progress + '%';
-        }, 200);
-    });
-
-    // Auto-refresh for file status (if processing)
-    const processingFiles = document.querySelectorAll('.status-processing');
-    if (processingFiles.length > 0) {
-        setTimeout(() => {
-            location.reload();
-        }, 5000); // Refresh every 5 seconds if there are processing files
+        
+        const file = files[0];
+        console.log('Handling file:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+        
+        // Validate file
+        if (!validateFile(file)) {
+            clearSelectedFile();
+            return;
+        }
+        
+        // Update UI with selected file
+        displaySelectedFile(file);
+        
+        // Enable submit button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add('ready');
+        }
+        
+        // Update upload zone appearance
+        updateUploadZoneAppearance(true);
+        
+        showNotification('File selected successfully!', 'success');
     }
+
+    function validateFile(file) {
+        // Check file extension
+        const fileName = file.name.toLowerCase();
+        const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
+        
+        if (!isValidType) {
+            const allowedTypesStr = allowedExtensions.join(', ').toUpperCase();
+            showNotification(`Invalid file type. Please select: ${allowedTypesStr}`, 'error');
+            return false;
+        }
+
+        // Check file size
+        if (file.size > maxFileSize) {
+            showNotification('File size must be less than 10MB', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    function displaySelectedFile(file) {
+        if (selectedFileName) {
+            selectedFileName.textContent = file.name;
+        }
+        
+        if (selectedFileSize) {
+            selectedFileSize.textContent = formatFileSize(file.size);
+        }
+        
+        if (selectedFile) {
+            selectedFile.classList.add('show');
+        }
+        
+        console.log('Selected file displayed in UI');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function clearSelectedFile() {
+        console.log('Clearing selected file');
+        
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        
+        if (selectedFile) {
+            selectedFile.classList.remove('show');
+        }
+        
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('ready');
+        }
+        
+        updateUploadZoneAppearance(false);
+        
+        console.log('File cleared from UI');
+    }
+
+    function updateUploadZoneAppearance(hasFile) {
+        if (!uploadZone) return;
+        
+        if (hasFile) {
+            uploadZone.style.borderColor = 'var(--primary-gradient)';
+            uploadZone.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)';
+        } else {
+            uploadZone.style.borderColor = '';
+            uploadZone.style.background = '';
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        `;
+        
+        // Style based on type
+        switch (type) {
+            case 'success':
+                notification.style.background = 'linear-gradient(135deg, #d4edda, #c3e6cb)';
+                notification.style.color = '#155724';
+                notification.style.border = '1px solid #c3e6cb';
+                break;
+            case 'error':
+                notification.style.background = 'linear-gradient(135deg, #f8d7da, #f5c6cb)';
+                notification.style.color = '#721c24';
+                notification.style.border = '1px solid #f5c6cb';
+                break;
+            default:
+                notification.style.background = 'linear-gradient(135deg, #d1ecf1, #bee5eb)';
+                notification.style.color = '#0c5460';
+                notification.style.border = '1px solid #bee5eb';
+        }
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+
+    // Make clearSelectedFile available globally
+    window.clearSelectedFile = clearSelectedFile;
+
+    // Form submission handler
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            console.log('Form submission started');
+            
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                e.preventDefault();
+                showNotification('Please select a file to upload', 'error');
+                return false;
+            }
+
+            const selectedFile = fileInput.files[0];
+            console.log('Submitting file:', selectedFile.name);
+            
+            // Validate file one more time
+            if (!validateFile(selectedFile)) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Update submit button
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            }
+            
+            // Show progress container
+            if (progressContainer) {
+                progressContainer.style.display = 'block';
+            }
+
+            // Simulate upload progress
+            simulateProgress();
+            
+            showNotification('Upload started successfully!', 'success');
+            
+            // Allow form to submit normally
+            return true;
+        });
+    }
+
+    function simulateProgress() {
+        let progress = 0;
+        const increment = Math.random() * 15 + 5; // Random increment between 5-20
+        
+        const interval = setInterval(() => {
+            progress += increment;
+            if (progress > 90) {
+                progress = 90; // Stop at 90% to show processing
+            }
+            
+            updateProgress(progress);
+            
+            if (progress >= 90) {
+                clearInterval(interval);
+                // Keep at 90% until actual server response
+            }
+        }, 200);
+        
+        // Clean up after 30 seconds max
+        setTimeout(() => {
+            clearInterval(interval);
+        }, 30000);
+    }
+
+    function updateProgress(percent) {
+        if (progressBar) {
+            progressBar.style.width = percent + '%';
+        }
+        if (progressPercent) {
+            progressPercent.textContent = Math.round(percent) + '%';
+        }
+    }
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .btn-submit.ready {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3); }
+            50% { box-shadow: 0 15px 40px rgba(79, 172, 254, 0.5); }
+            100% { box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    console.log('Upload page setup complete');
 });
 </script>
 {% endblock %}

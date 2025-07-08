@@ -1,0 +1,492 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - QuizHub{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" rel="stylesheet">
+<style>
+    .analytics-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        text-align: center;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+    }
+    
+    .chart-container-small {
+        position: relative;
+        height: 300px;
+        margin: 1rem 0;
+    }
+    
+    .analytics-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .analytics-table table {
+        width: 100%;
+        margin: 0;
+    }
+    
+    .analytics-table th {
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem;
+        font-weight: 600;
+    }
+    
+    .analytics-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .trend-up {
+        color: var(--success-color);
+    }
+    
+    .trend-down {
+        color: var(--danger-color);
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .activity-quiz { background: var(--primary-color); }
+    .activity-user { background: var(--success-color); }
+    .activity-attempt { background: var(--warning-color); }
+    
+    .filter-section {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Analytics Dashboard
+                </h1>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" onclick="refreshAnalytics()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportAnalytics('pdf')">Export PDF</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAnalytics('excel')">Export Excel</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAnalytics('csv')">Export CSV</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        {% if user.role == 'admin' or user.is_staff %}
+            <!-- Platform-wide metrics for admins -->
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ total_users|default:0 }}</div>
+                    <div class="metric-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ total_quizzes|default:0 }}</div>
+                    <div class="metric-label">Total Quizzes</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ total_attempts|default:0 }}</div>
+                    <div class="metric-label">Total Attempts</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ completion_rate|floatformat:1|default:"0.0" }}%</div>
+                    <div class="metric-label">Completion Rate</div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Teacher metrics -->
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ created_quizzes.total_quizzes|default:0 }}</div>
+                    <div class="metric-label">Created Quizzes</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ created_quizzes.total_attempts|default:0 }}</div>
+                    <div class="metric-label">Total Attempts</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ created_quizzes.avg_score|floatformat:1|default:"0.0" }}%</div>
+                    <div class="metric-label">Average Score</div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Charts Section -->
+        <div class="col-lg-8">
+            {% if user.role == 'admin' or user.is_staff %}
+                <!-- User Engagement Chart -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-people me-2"></i>User Engagement Trends
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Popular Categories Chart -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-bookmark me-2"></i>Popular Categories
+                    </h5>
+                    <div class="chart-container-small">
+                        <canvas id="categoriesChart"></canvas>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Quiz Performance Chart -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up me-2"></i>Quiz Performance Overview
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Student Performance Chart -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-people me-2"></i>Student Performance Distribution
+                    </h5>
+                    <div class="chart-container-small">
+                        <canvas id="studentChart"></canvas>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            {% if user.role == 'admin' or user.is_staff %}
+                <!-- Recent Activity -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-clock me-2"></i>Recent Activity
+                    </h5>
+                    <div class="activity-feed">
+                        {% for activity in recent_activity %}
+                            <div class="activity-item">
+                                <div class="activity-icon activity-{{ activity.type }}">
+                                    <i class="bi bi-{{ activity.icon }}"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">{{ activity.description }}</div>
+                                    <div class="activity-time text-muted">{{ activity.timestamp|timesince }} ago</div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                No recent activity
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Top Categories -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-star me-2"></i>Top Categories
+                    </h5>
+                    <div class="analytics-table">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Quizzes</th>
+                                    <th>Attempts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in popular_categories %}
+                                    <tr>
+                                        <td>{{ category.name }}</td>
+                                        <td>{{ category.quiz_count }}</td>
+                                        <td>{{ category.attempt_count }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No data available</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Quick Actions -->
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Quiz
+                        </a>
+                        <a href="{% url 'textprocessor:upload' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-robot me-2"></i>AI Quiz Generator
+                        </a>
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list me-2"></i>View All Quizzes
+                        </a>
+                    </div>
+                </div>
+
+                <!-- My Quiz Performance -->
+                {% if student_performance %}
+                <div class="analytics-card">
+                    <h5 class="card-title">
+                        <i class="bi bi-mortarboard me-2"></i>Student Performance Summary
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="h4 text-primary">{{ student_performance.avg_score|floatformat:1 }}%</div>
+                            <small class="text-muted">Average Score</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 text-success">{{ student_performance.completion_rate|floatformat:1 }}%</div>
+                            <small class="text-muted">Completion Rate</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+    // Chart.js configuration
+    Chart.defaults.font.family = 'Poppins';
+    Chart.defaults.color = '#666';
+
+    {% if user.role == 'admin' or user.is_staff %}
+        // User Engagement Chart
+        const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+        const engagementChart = new Chart(engagementCtx, {
+            type: 'line',
+            data: {
+                labels: {{ user_engagement.labels|safe }},
+                datasets: [{
+                    label: 'Daily Active Users',
+                    data: {{ user_engagement.daily_users|safe }},
+                    borderColor: '#4361ee',
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Quiz Attempts',
+                    data: {{ user_engagement.quiz_attempts|safe }},
+                    borderColor: '#4cc9f0',
+                    backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Categories Chart
+        const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+        const categoriesChart = new Chart(categoriesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ popular_categories|safe }}.map(cat => cat.name),
+                datasets: [{
+                    data: {{ popular_categories|safe }}.map(cat => cat.quiz_count),
+                    backgroundColor: [
+                        '#4361ee', '#4cc9f0', '#3f37c9', '#f72585', '#4bb543',
+                        '#fca311', '#e63946', '#2a9d8f', '#e76f51', '#264653'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    {% else %}
+        // Quiz Performance Chart for Teachers
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ quiz_engagement.quiz_names|safe }},
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: {{ quiz_engagement.avg_scores|safe }},
+                    backgroundColor: 'rgba(67, 97, 238, 0.8)',
+                    borderColor: '#4361ee',
+                    borderWidth: 1
+                }, {
+                    label: 'Completion Rate (%)',
+                    data: {{ quiz_engagement.completion_rates|safe }},
+                    backgroundColor: 'rgba(76, 201, 240, 0.8)',
+                    borderColor: '#4cc9f0',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Student Performance Distribution
+        {% if student_performance %}
+        const studentCtx = document.getElementById('studentChart').getContext('2d');
+        const studentChart = new Chart(studentCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Excellent (90-100%)', 'Good (70-89%)', 'Fair (50-69%)', 'Poor (0-49%)'],
+                datasets: [{
+                    data: {{ student_performance.score_distribution|safe }},
+                    backgroundColor: ['#4bb543', '#4cc9f0', '#fca311', '#e63946']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        {% endif %}
+    {% endif %}
+
+    // Utility functions
+    function refreshAnalytics() {
+        window.location.reload();
+    }
+
+    function exportAnalytics(format) {
+        // Implement export functionality
+        console.log('Exporting analytics as', format);
+        // You can implement actual export logic here
+    }
+
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        refreshAnalytics();
+    }, 300000);
+</script>
+{% endblock %}

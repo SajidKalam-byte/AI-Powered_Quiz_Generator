@@ -344,10 +344,42 @@
                         <span>All Quizzes</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
+                
+                <!-- Analytics Section -->
+                <li class="nav-item has-submenu">
+                    <a href="#" class="nav-link submenu-toggle">
                         <i class="bi bi-graph-up"></i>
                         <span>Analytics</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="submenu nav flex-column">
+                        <li><a href="{% url 'quizzes:analytics_dashboard' %}" class="nav-link">Dashboard</a></li>
+                        <li><a href="{% url 'quizzes:export_history' %}" class="nav-link">Export History</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Admin Section (only for admin/staff users) -->
+                {% if user.is_staff or user.role == 'admin' %}
+                <li class="nav-item has-submenu">
+                    <a href="#" class="nav-link submenu-toggle">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Admin Panel</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="submenu nav flex-column">
+                        <li><a href="{% url 'admin_dashboard:dashboard' %}" class="nav-link">Admin Dashboard</a></li>
+                        <li><a href="{% url 'admin_dashboard:manage_users' %}" class="nav-link">Manage Users</a></li>
+                        <li><a href="{% url 'admin_dashboard:manage_quizzes' %}" class="nav-link">Manage Quizzes</a></li>
+                        <li><a href="{% url 'admin_dashboard:manage_ai_prompts' %}" class="nav-link">AI Prompts</a></li>
+                        <li><a href="{% url 'admin_dashboard:system_settings' %}" class="nav-link">Settings</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+                
+                <li class="nav-item">
+                    <a href="{% url 'quizzes:leaderboard' %}" class="nav-link">
+                        <i class="bi bi-trophy"></i>
+                        <span>Leaderboard</span>
                     </a>
                 </li>
                 <li class="nav-item">

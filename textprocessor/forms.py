@@ -9,7 +9,8 @@ class FileUploadForm(forms.ModelForm):
         widget=forms.FileInput(attrs={
             'class': 'form-control',
             'accept': '.pdf,.txt,.docx,.pptx',
-            'multiple': False
+            'multiple': False,
+            'style': 'position: absolute; left: -9999px; opacity: 0;'
         })
     )
     
@@ -21,7 +22,8 @@ class FileUploadForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 3,
-            'placeholder': 'e.g., Computer Science syllabus for semester 1...'
+            'placeholder': 'e.g., Computer Science syllabus for semester 1...',
+            'style': 'border-radius: 8px;'
         })
     )
     
@@ -50,7 +52,10 @@ class QuizFromFileForm(forms.Form):
     """Form to generate quiz from uploaded file"""
     uploaded_file = forms.ModelChoiceField(
         queryset=None,  # Will be set in view
-        widget=forms.Select(attrs={'class': 'form-select'}),
+        widget=forms.Select(attrs={
+            'class': 'form-select form-control',
+            'style': 'border-radius: 8px; padding: 0.75rem;'
+        }),
         label='Select Uploaded File'
     )
     
@@ -71,7 +76,8 @@ class QuizFromFileForm(forms.Form):
         label='Specific Topic (if selected above)',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter specific topic or chapter name...'
+            'placeholder': 'Enter specific topic or chapter name...',
+            'style': 'border-radius: 8px; padding: 0.75rem;'
         }),
         help_text='Only needed if you selected "Specific Topic/Section"'
     )
@@ -83,7 +89,10 @@ class QuizFromFileForm(forms.Form):
         label='Number of Questions',
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
-            'placeholder': '10'
+            'placeholder': '10',
+            'style': 'border-radius: 8px; padding: 0.75rem;',
+            'min': '1',
+            'max': '50'
         })
     )
     
@@ -95,7 +104,7 @@ class QuizFromFileForm(forms.Form):
         ],
         initial='MEDIUM',
         label='Difficulty Level',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.HiddenInput()  # Hidden because we use custom cards
     )
     
     category = forms.ModelChoiceField(
@@ -103,7 +112,10 @@ class QuizFromFileForm(forms.Form):
         empty_label='Auto-detect category',
         required=False,
         label='Quiz Category',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={
+            'class': 'form-select form-control',
+            'style': 'border-radius: 8px; padding: 0.75rem;'
+        })
     )
     
     def __init__(self, user=None, *args, **kwargs):
