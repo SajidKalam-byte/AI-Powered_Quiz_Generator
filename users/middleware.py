@@ -20,14 +20,14 @@ class AuthenticationMiddleware:
 
         # Allow access to admin URLs for authenticated admin users
         if request.path.startswith('/admin/'):
-            # Allow unauthenticated access to admin login page
+            # Always allow access to Django admin login page
             if request.path == '/admin/login/':
                 return self.get_response(request)
-            # Check if user is authenticated and authorized for admin access
+            # For other admin URLs, check authentication and authorization
             if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'admin')):
                 return self.get_response(request)
             elif not request.user.is_authenticated:
-                # Redirect to Django admin login for admin URLs
+                # Redirect to Django admin login for admin URLs (not custom login)
                 return redirect(f"/admin/login/?next={request.path}")
             else:
                 # User is authenticated but not authorized for admin
