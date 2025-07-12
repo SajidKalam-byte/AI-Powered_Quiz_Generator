@@ -14,6 +14,9 @@ urlpatterns = [
     
     # Quiz generation from files
     path('generate-quiz/', views.generate_quiz_from_file, name='generate_quiz'),
+    # File summary and Q&A
+    path('files/<int:file_id>/insights/', views.file_insights, name='file_insights'),
+    path('files/<int:file_id>/insights/qa/', views.file_qa_api, name='file_qa_api'),
     
     # Legacy compatibility
     path('upload-view/', views.upload_file_view, name='upload_view'),

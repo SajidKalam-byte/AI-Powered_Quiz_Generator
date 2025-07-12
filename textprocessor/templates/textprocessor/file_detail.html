@@ -263,6 +263,9 @@
                        class="btn btn-success">
                         <i class="fas fa-magic me-2"></i>Generate Quiz
                     </a>
+                    <a href="{% url 'textprocessor:file_insights' file.id %}" class="btn btn-info">
+                        <i class="fas fa-comments me-2"></i>Summary & Chat
+                    </a>
                     {% endif %}
                     
                     {% if file.status == 'failed' %}

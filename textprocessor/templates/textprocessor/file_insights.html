@@ -1,0 +1,95 @@
+{% extends dashboard_template %}
+{% load static %}
+
+{% block title %}{{ file.original_filename }} - Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    .insights-header { margin-bottom: 2rem; }
+    .summary-card, .qa-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+    .qa-input-group { display: flex; gap: 1rem; margin-top: 1rem; }
+    .qa-input { flex-grow: 1; }
+    .answer-box { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem; min-height: 100px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="insights-header">
+        <a href="{% url 'textprocessor:file_detail' file.id %}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left me-2"></i>Back to File Details
+        </a>
+        <h2><i class="fas fa-lightbulb me-2"></i>Content Insights</h2>
+        <p class="text-muted">AI-generated summary and interactive Q&A for your file.</p>
+    </div>
+
+    <div class="summary-card">
+        <h4><i class="fas fa-file-alt me-2"></i>Summary</h4>
+        <p>{{ summary }}</p>
+    </div>
+
+    <div class="qa-card">
+        <h4><i class="fas fa-question-circle me-2"></i>Ask a Question</h4>
+        <div class="qa-input-group">
+            <input type="text" id="questionInput" class="form-control qa-input" placeholder="Type your question here...">
+            <button id="askBtn" class="btn btn-primary">Ask</button>
+        </div>
+        <div id="answerBox" class="answer-box text-muted">
+            Your answer will appear here.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const askBtn = document.getElementById('askBtn');
+    const questionInput = document.getElementById('questionInput');
+    const answerBox = document.getElementById('answerBox');
+    const csrftoken = getCookie('csrftoken');
+    const qaUrl = '{% url "textprocessor:file_qa_api" file.id %}';
+
+    askBtn.addEventListener('click', () => {
+        const question = questionInput.value.trim();
+        if (!question) return;
+        answerBox.textContent = 'Thinking...';
+        fetch(qaUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: new URLSearchParams({ question })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.answer) {
+                answerBox.textContent = data.answer;
+            } else if (data.error) {
+                answerBox.textContent = data.error;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            answerBox.textContent = 'Error fetching answer.';
+        });
+    });
+});
+</script>
+{% endblock %}

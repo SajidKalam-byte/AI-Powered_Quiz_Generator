@@ -199,6 +199,22 @@ class EnhancedAIService:
         
         return result
     
+    def summarize_content(self, text: str) -> str:
+        """Generate a concise educational summary of the provided content"""
+        prompt = f"""
+You are an AI assistant specialized in educational summaries.
+Please provide a clear, concise summary of the following content, highlighting key points and main ideas suitable for teachers and students.
+
+Content:
+{text[:5000]}
+"""
+        try:
+            ai_response = self._call_ai_provider(prompt, 'summarization')
+            return ai_response.strip() if ai_response else 'No summary available.'
+        except Exception as e:
+            logger.error(f"Content summarization failed: {str(e)}")
+            return 'Error generating summary.'
+    
     def _build_advanced_quiz_prompt(self, 
                                   topic: str, 
                                   content: str, 
@@ -604,6 +620,25 @@ Generate exactly {num_questions} questions. Ensure variety in question structure
                 "is_fallback": True
             }
         }
+    
+    def answer_question(self, content: str, question: str) -> str:
+        """Answer a user question based on provided content"""
+        prompt = f"""
+You are an AI assistant specialized in educational content.
+Based on the following content, answer the user's question in a clear and concise manner.
+
+Content:
+{content}
+
+Question:
+{question}
+"""
+        try:
+            ai_response = self._call_ai_provider(prompt, 'question_answering')
+            return ai_response.strip() if ai_response else "I'm sorry, I don't have an answer for that."
+        except Exception as e:
+            logger.error(f"Question answering failed: {str(e)}")
+            return "I'm sorry, something went wrong while answering your question."
 
 # Global instance
 ai_service = EnhancedAIService()

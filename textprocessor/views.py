@@ -18,9 +18,9 @@ from .utils import (
     validate_extracted_text,
     get_text_chunk_for_quiz
 )
+from ai.utils import ai_service
 from quizzes.models import Quiz, Question, Category
 from quizzes.views import get_dashboard_template
-from ai.utils import ai_service
 import requests
 from django.conf import settings
 
@@ -497,3 +497,25 @@ def reprocess_file(request, file_id):
 def upload_file_view(request):
     """Legacy view - redirect to new file list"""
     return redirect('textprocessor:file_list')
+
+def file_insights(request, file_id):
+    """Render summary and Q&A interface for the uploaded file"""
+    file_obj = get_object_or_404(UploadedFile, id=file_id, user=request.user, status='completed')
+    dashboard_template = get_dashboard_template(request.user)
+    summary = ai_service.summarize_content(file_obj.extracted_text)
+    return render(request, 'textprocessor/file_insights.html', {
+        'file': file_obj,
+        'summary': summary,
+        'dashboard_template': dashboard_template
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def file_qa_api(request, file_id):
+    """Answer a question based on file content"""
+    file_obj = get_object_or_404(UploadedFile, id=file_id, user=request.user, status='completed')
+    question = request.POST.get('question', '').strip()
+    if not question:
+        return JsonResponse({'error': 'No question provided.'}, status=400)
+    answer = ai_service.answer_question(file_obj.extracted_text, question)
+    return JsonResponse({'answer': answer})
