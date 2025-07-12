@@ -1,4 +1,3 @@
-
 {% load static %}
 
 {% block title %}Generate AI Quiz{% endblock %}
@@ -450,6 +449,9 @@
                         {% endif %}
                     </div>
                 </div>
+                {% endif %}
+                {% if selected_file %}
+                <input type="hidden" name="uploaded_file" value="{{ selected_file.id }}">
                 {% endif %}
                 
                 <!-- Content Selection -->

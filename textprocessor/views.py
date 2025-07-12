@@ -171,8 +171,8 @@ def generate_quiz_from_file(request):
     """Generate quiz from uploaded file"""
     dashboard_template = get_dashboard_template(request.user)
     
-    # Pre-select file if provided in URL
-    selected_file_id = request.GET.get('file')
+    # Pre-select file if provided in URL or POST data
+    selected_file_id = request.GET.get('file') or request.POST.get('uploaded_file')
     selected_file = None
     if selected_file_id:
         try:
