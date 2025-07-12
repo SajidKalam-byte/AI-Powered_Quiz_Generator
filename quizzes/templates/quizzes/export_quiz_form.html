@@ -1,0 +1,13 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Export Quiz</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Export Quiz</button>
+    </form>
+</div>
+{% endblock %}

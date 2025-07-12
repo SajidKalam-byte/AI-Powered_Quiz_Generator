@@ -761,26 +761,9 @@
             <div class="profile-avatar" data-tooltip="Click to change avatar">
                 {{ request.user.full_name|slice:":2"|upper }}
             </div>
-            <div class="profile-info">
-                <h1>{{ request.user.full_name|default:"User Name" }}</h1>
-                <div class="profile-role">
-                    <i class="bi bi-person-badge"></i>
-                    {{ request.user.get_role_display|default:"Student" }}
-                </div>
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">{{ created_quizzes_count|default:"0" }}</span>
-                        <span class="stat-label">Quizzes Created</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">{{ attempted_quizzes_count|default:"0" }}</span>
-                        <span class="stat-label">Quizzes Attempted</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">{{ average_score|default:"0" }}%</span>
-                        <span class="stat-label">Average Score</span>
-                    </div>
-                </div>
+            <div>
+                <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
+                <p>{{ request.user.email }}</p>
             </div>
         </div>
     </div>
@@ -792,7 +775,7 @@
                 <i class="bi bi-person-circle"></i>
                 Basic Information
             </h2>
-            <a href="#" class="edit-btn">
+            <a href="{% url 'users:edit_profile' %}" class="edit-btn">
                 <i class="bi bi-pencil-square"></i>
                 Edit Profile
             </a>
@@ -1020,7 +1003,7 @@
                             <span class="badge bg-light text-dark">{{ quiz.category.name }}</span>
                         </td>
                         <td>
-                            <span class="badge bg-info">{{ quiz.questions.count }} questions</span>
+                            <span class="badge bg-info">{{ quiz.num_questions|default:quiz.questions.count }} questions</span>
                         </td>
                         <td>{{ quiz.view_count|default:"0" }}</td>
                         <td>

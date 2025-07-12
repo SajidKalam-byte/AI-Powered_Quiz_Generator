@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
 from django.db.models import Avg, Count, Max
 from django.utils import timezone
@@ -282,7 +284,7 @@ def profile_view(request):
     created_quizzes = []
     if user.role in ['teacher', 'admin']:
         created_quizzes = Quiz.objects.filter(created_by=user).select_related('category').annotate(
-            question_count=Count('questions')
+            num_questions=Count('questions')
         ).order_by('-created_at')[:10]
     
     context = {
@@ -296,6 +298,37 @@ def profile_view(request):
     }
     
     return render(request, 'base/profile.html', context)
+@login_required
+def edit_profile(request):
+    from .forms import ProfileForm
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('users:profile')
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, 'users/edit_profile.html', {
+        'form': form,
+        'dashboard_template': get_dashboard_template(request.user)
+    })
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Password changed successfully.')
+            return redirect('users:profile')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'users/change_password.html', {
+        'form': form,
+        'dashboard_template': get_dashboard_template(request.user)
+    })
 
 def get_dashboard_template(user):
     """Helper function to determine the correct base template based on user role"""

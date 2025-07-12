@@ -1,0 +1,34 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Export History{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Export History</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Quiz</th>
+                <th>Format</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for export in exports %}
+            <tr>
+                <td>{{ export.created_at|date:"M d, Y H:i" }}</td>
+                <td><a href="{% url 'quizzes:quiz_detail' export.quiz.id %}}">{{ export.quiz.title }}</a></td>
+                <td>{{ export.format }}</td>
+                <td><a href="{% url 'quizzes:download_export' export.id %}" class="btn btn-sm btn-primary">Download</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No export records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
