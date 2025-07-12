@@ -34,6 +34,7 @@ class AuthenticationMiddleware:
                 messages.error(request, "You don't have permission to access the admin panel.")
                 return redirect('users:dashboard')
 
+        # Allow public URLs (including POST requests to login) and static/media files
         if request.path in public_urls or request.path.startswith(settings.STATIC_URL) or request.path.startswith(settings.MEDIA_URL):
             return self.get_response(request)
 
@@ -46,16 +47,21 @@ class AuthenticationMiddleware:
 
         # Session timeout check
         if request.user.is_authenticated and 'last_activity' in request.session:
-            last_activity = datetime.datetime.fromisoformat(request.session['last_activity'])
-            if (datetime.datetime.now(datetime.timezone.utc) - last_activity).total_seconds() > settings.SESSION_COOKIE_AGE:
-                from django.contrib.auth import logout
-                logout(request)
-                messages.error(request, "Your session has expired. Please log in again.")
-                login_url = reverse('users:login')
-                next_param = request.GET.get('next', request.path)
-                return redirect(f"{login_url}?next={next_param}")
+            try:
+                last_activity = datetime.datetime.fromisoformat(request.session['last_activity'])
+                if (datetime.datetime.now(datetime.timezone.utc) - last_activity).total_seconds() > settings.SESSION_COOKIE_AGE:
+                    from django.contrib.auth import logout
+                    logout(request)
+                    messages.error(request, "Your session has expired. Please log in again.")
+                    login_url = reverse('users:login')
+                    next_param = request.GET.get('next', request.path)
+                    return redirect(f"{login_url}?next={next_param}")
+            except (ValueError, TypeError):
+                # Handle invalid datetime format in session
+                pass
 
-        # Update last activity
-        request.session['last_activity'] = str(datetime.datetime.now(datetime.timezone.utc))
+        # Update last activity for authenticated users
+        if request.user.is_authenticated:
+            request.session['last_activity'] = str(datetime.datetime.now(datetime.timezone.utc))
 
         return self.get_response(request)

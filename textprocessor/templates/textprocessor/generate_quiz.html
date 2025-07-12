@@ -1,18 +1,16 @@
-{% extends dashboard_template %}
+
 {% load static %}
 
 {% block title %}Generate AI Quiz{% endblock %}
 
 {% block extra_css %}
 <style>
-    body {
-        background-color: #f8f9fa;
-    }
-    
+    /* Reset any conflicting styles */
     .main-container {
-        max-width: 1200px;
-        margin: 0 auto;
+        max-width: none;
+        margin: 0;
         padding: 20px;
+        position: relative;
     }
     
     .page-header {
@@ -337,6 +335,7 @@
         margin-bottom: 1rem;
     }
     
+    /* Mobile Responsiveness */
     @media (max-width: 768px) {
         .quiz-config-grid {
             grid-template-columns: 1fr;
@@ -358,6 +357,25 @@
         .content-card {
             padding: 1.5rem;
         }
+    }
+    
+    /* Ensure content is visible */
+    .main-container {
+        position: relative;
+        z-index: 1;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Fix any potential overlay issues */
+    .row {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    
+    .col-lg-8, .col-lg-4 {
+        padding-right: 15px;
+        padding-left: 15px;
     }
 </style>
 {% endblock %}

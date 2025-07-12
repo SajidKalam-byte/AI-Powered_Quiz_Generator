@@ -154,10 +154,10 @@ def user_login(request):
             login(request, user)
             # Set session expiry
             request.session.set_expiry(3600)  # 1 hour
-            request.session['last_activity'] = str(request.session.get_expiry_date())
-            
+            request.session['last_activity'] = str(timezone.now())
+
             messages.success(request, f"Welcome back, {user.full_name or user.username}!")
-            
+
             # Redirect to appropriate dashboard based on user role and next URL
             return _redirect_authenticated_user(request, user, next_url)
         else:

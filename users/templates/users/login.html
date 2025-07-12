@@ -168,7 +168,7 @@
                         <p class="text-muted mb-3">Click to quickly sign in with demo accounts:</p>
                         
                         {% for account in demo_accounts %}
-                        <div class="demo-card" onclick="quickLogin('{{ account.username }}', 'password123')">
+                        <div class="demo-card" onclick="quickLogin('{{ account.username }}', '$assword123')">
                             <div class="d-flex align-items-center">
                                 <div class="me-3">
                                     {% if account.role == 'Administrator' %}

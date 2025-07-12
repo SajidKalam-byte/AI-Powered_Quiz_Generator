@@ -256,7 +256,8 @@ QUESTION TYPES TO USE:
 
 {content_section}
 
-OUTPUT FORMAT (JSON only):
+IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON.
+
 {{
     "title": "Engaging, specific quiz title",
     "description": "What students will learn from this quiz",
@@ -271,7 +272,7 @@ OUTPUT FORMAT (JSON only):
             "correct_option": "A",
             "explanation": "Detailed explanation with educational value",
             "difficulty": "{difficulty}",
-            "cognitive_level": "remember|understand|apply|analyze|evaluate|create",
+            "cognitive_level": "understand",
             "topic_tags": ["tag1", "tag2"],
             "points": 10,
             "estimated_time": 90
@@ -281,7 +282,7 @@ OUTPUT FORMAT (JSON only):
         "total_points": {num_questions * 10},
         "average_time_per_question": 90,
         "difficulty_distribution": {{"easy": 0, "medium": 0, "hard": 0}},
-        "cognitive_distribution": {{"remember": 0, "understand": 0, "apply": 0}}
+        "cognitive_distribution": {{"understand": {num_questions}}}
     }}
 }}
 
@@ -377,17 +378,43 @@ Generate exactly {num_questions} questions. Ensure variety in question structure
         return None
     
     def _parse_quiz_response(self, response: str, expected_questions: int) -> Optional[Dict]:
-        """Parse and validate AI quiz response"""
+        """Parse and validate AI quiz response with improved error handling"""
         try:
-            # Extract JSON from response
-            json_match = re.search(r'(?:```json\s*)?(\{[\s\S]*?\})(?:\s*```)?', response, re.DOTALL)
-            if not json_match:
-                raise ValueError("No valid JSON found")
+            # Clean up the response
+            response = response.strip()
             
-            quiz_data = json.loads(json_match.group(1))
+            # Try to extract JSON from various formats
+            json_text = None
+            
+            # Method 1: Look for JSON blocks
+            json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', response, re.DOTALL)
+            if json_match:
+                json_text = json_match.group(1)
+            else:
+                # Method 2: Look for JSON without code blocks
+                json_match = re.search(r'(\{[\s\S]*?\})', response, re.DOTALL)
+                if json_match:
+                    json_text = json_match.group(1)
+            
+            if not json_text:
+                logger.error("No JSON found in response")
+                return None
+                
+            # Clean up common JSON issues
+            json_text = json_text.strip()
+            
+            # Try to parse JSON
+            try:
+                quiz_data = json.loads(json_text)
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error: {e}")
+                # Try to fix common issues
+                json_text = self._fix_common_json_issues(json_text)
+                quiz_data = json.loads(json_text)
             
             # Validate structure
             if not self._validate_quiz_data(quiz_data, expected_questions):
+                logger.error("Quiz data validation failed")
                 return None
             
             # Enhance data
@@ -395,7 +422,21 @@ Generate exactly {num_questions} questions. Ensure variety in question structure
             
         except Exception as e:
             logger.error(f"Failed to parse quiz response: {str(e)}")
+            logger.error(f"Response preview: {response[:500]}...")
             return None
+    
+    def _fix_common_json_issues(self, json_text: str) -> str:
+        """Fix common JSON formatting issues"""
+        # Remove trailing commas
+        json_text = re.sub(r',\s*([}\]])', r'\1', json_text)
+        
+        # Fix unescaped quotes in strings
+        json_text = re.sub(r'(?<!\\)"(?![\s]*[,}\]:])', r'\\"', json_text)
+        
+        # Ensure proper string quoting
+        json_text = re.sub(r'([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:', r'\1"\2":', json_text)
+        
+        return json_text
     
     def _validate_quiz_data(self, data: Dict, expected_questions: int) -> bool:
         """Validate quiz data structure and content"""
