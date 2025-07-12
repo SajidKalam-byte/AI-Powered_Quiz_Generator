@@ -104,11 +104,7 @@
                         <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary me-3">
                             <i class="bi bi-arrow-left me-2"></i>Back to Quizzes
                         </a>
-                        {% if quiz.questions.count > 0 %}
-                        <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-primary btn-lg btn-glow">
-                            <i class="bi bi-play-fill me-2"></i>Start Quiz Now
-                        </a>
-                        {% endif %}
+                        
                     </div>
                 </div>
             </div>
