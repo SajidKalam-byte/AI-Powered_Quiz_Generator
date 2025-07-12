@@ -162,6 +162,7 @@
             position: relative;
             flex-grow: 1;
             max-width: 500px;
+            margin-left: auto;  /* push search bar and user-actions to right */
         }
         
         .search-bar input {
@@ -324,40 +325,37 @@
                     <a href="{% url 'quizzes:quiz_list' %}" class="nav-link">
                         <i class="bi bi-lightbulb"></i>
                         <span>Quiz</span>
+                        <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
-                
                 <!-- AI-Powered Quiz Generation -->
-                <li class="nav-item has-submenu">
-                    <a href="#" class="nav-link submenu-toggle">
+                <li class="nav-item">
+                    <a href="{% url 'textprocessor:generate_quiz' %}" class="nav-link">
                         <i class="bi bi-robot"></i>
                         <span>AI Quiz Generator</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <ul class="submenu nav flex-column">
-                        <li><a href="{% url 'textprocessor:upload' %}" class="nav-link">Upload Content</a></li>
-                        <li><a href="{% url 'textprocessor:file_list' %}" class="nav-link">My Files</a></li>
-                        <li><a href="{% url 'textprocessor:generate_quiz' %}" class="nav-link">Generate Quiz</a></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-trophy"></i>
-                        <span>Today's Challenge</span>
+                        <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{% url 'textprocessor:upload' %}" class="nav-link">
                         <i class="bi bi-newspaper"></i>
-                        <span>News & Updates</span>
+                        <span>Upload Content</span>
+                        <span class="badge bg-success ms-2">New</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'textprocessor:file_list' %}" class="nav-link">
+                        <i class="bi bi-trophy"></i>
+                        <span>My Files</span>
+                        <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'quizzes:quiz_list' %}" class="nav-link">
                         <i class="bi bi-compass"></i>
                         <span>Explore Quizzes</span>
+                        <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -380,12 +378,6 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-people"></i>
-                        <span>Affiliate Page</span>
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="bi bi-currency-dollar"></i>

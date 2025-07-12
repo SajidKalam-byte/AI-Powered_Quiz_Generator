@@ -185,15 +185,66 @@ def generate_quiz_from_file(request):
             messages.error(request, 'Selected file not found or not processed.')
     
     if request.method == 'POST':
-        form = QuizFromFileForm(user=request.user, data=request.POST)
-        if form.is_valid():
-            try:
-                quiz = create_quiz_from_file_data(request.user, form.cleaned_data)
-                messages.success(request, f'Quiz "{quiz.title}" generated successfully!')
-                return redirect('quizzes:quiz_detail', quiz_id=quiz.id)
-            except Exception as e:
-                logger.error(f"Quiz generation failed: {str(e)}")
-                messages.error(request, f'Failed to generate quiz: {str(e)}')
+        # Handle manual topic generation when no file selected
+        if not selected_file:
+            manual_topic = request.POST.get('manual_topic', '').strip()
+            if not manual_topic:
+                messages.error(request, 'Please enter a topic for quiz generation.')
+            else:
+                form = QuizFromFileForm(user=request.user, data=request.POST)
+                if form.is_valid():
+                    try:
+                        from quizzes.models import Category
+                        from django.db import transaction
+                        # Determine or create category
+                        cat = form.cleaned_data.get('category')
+                        if not cat:
+                            cat_obj, _ = Category.objects.get_or_create(name=manual_topic)
+                            cat = cat_obj
+                        # Generate quiz via AI service
+                        quiz_data = generate_quiz_with_ai(
+                            text_content=manual_topic,
+                            topic=manual_topic,
+                            num_questions=form.cleaned_data['num_questions'],
+                            difficulty=form.cleaned_data['difficulty'],
+                            category=cat
+                        )
+                        # Save quiz and questions
+                        with transaction.atomic():
+                            quiz = Quiz.objects.create(
+                                title=quiz_data.get('title', f"Quiz: {manual_topic}"),
+                                category=cat,
+                                created_by=request.user,
+                                difficulty=form.cleaned_data['difficulty'],
+                                is_published=True
+                            )
+                            for idx, q in enumerate(quiz_data.get('questions', []), start=1):
+                                Question.objects.create(
+                                    quiz=quiz,
+                                    text=q['text'],
+                                    option_a=q['options']['A'],
+                                    option_b=q['options']['B'],
+                                    option_c=q['options']['C'],
+                                    option_d=q['options']['D'],
+                                    correct_option=q['correct_option'],
+                                    explanation=q.get('explanation', ''),
+                                    order=idx
+                                )
+                        messages.success(request, f'Quiz "{quiz.title}" generated successfully!')
+                        return redirect('quizzes:quiz_detail', quiz_id=quiz.id)
+                    except Exception as e:
+                        logger.error(f"Manual quiz generation failed: {str(e)}")
+                        messages.error(request, f'Failed to generate quiz: {str(e)}')
+        else:
+            form = QuizFromFileForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                try:
+                    quiz = create_quiz_from_file_data(request.user, form.cleaned_data)
+                    messages.success(request, f'Quiz "{quiz.title}" generated successfully!')
+                    return redirect('quizzes:quiz_detail', quiz_id=quiz.id)
+                except Exception as e:
+                    logger.error(f"Quiz generation failed: {str(e)}")
+                    messages.error(request, f'Failed to generate quiz: {str(e)}')
     else:
         # Pre-populate form with selected file
         initial_data = {}
@@ -245,6 +296,11 @@ def create_quiz_from_file_data(user, form_data):
             except:
                 pass
     
+    # Auto-create category if still not set
+    if not category:
+        category_name = quiz_topic
+        category, _ = Category.objects.get_or_create(name=category_name)
+
     # Generate quiz using AI
     quiz_data = generate_quiz_with_ai(text_chunk, quiz_topic, num_questions, difficulty, category)
     

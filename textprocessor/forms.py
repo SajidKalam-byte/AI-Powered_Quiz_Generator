@@ -127,7 +127,9 @@ class QuizFromFileForm(forms.Form):
                 status='completed',
                 extracted_text__isnull=False
             )
-    
+        # Make file selection optional to allow manual topic generation
+        self.fields['uploaded_file'].required = False
+     
     def clean(self):
         cleaned_data = super().clean()
         topic_selection = cleaned_data.get('topic_selection')

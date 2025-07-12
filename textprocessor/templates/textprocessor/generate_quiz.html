@@ -1,15 +1,17 @@
+{% extends dashboard_template %}
 {% load static %}
 
 {% block title %}Generate AI Quiz{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Reset any conflicting styles */
+    /* Override base template styles to prevent conflicts */
     .main-container {
         max-width: none;
         margin: 0;
-        padding: 20px;
+        padding: 0;
         position: relative;
+        background: transparent;
     }
     
     .page-header {
@@ -203,7 +205,8 @@
         box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
     }
     
-    .sidebar {
+    /* Custom sidebar for this page */
+    .custom-sidebar {
         background: white;
         border-radius: 15px;
         padding: 2rem;
@@ -345,10 +348,6 @@
             grid-template-columns: 1fr;
         }
         
-        .main-container {
-            padding: 10px;
-        }
-        
         .page-header {
             padding: 1.5rem;
         }
@@ -357,36 +356,17 @@
             padding: 1.5rem;
         }
     }
-    
-    /* Ensure content is visible */
-    .main-container {
-        position: relative;
-        z-index: 1;
-        opacity: 1;
-        visibility: visible;
-    }
-    
-    /* Fix any potential overlay issues */
-    .row {
-        margin-right: 0;
-        margin-left: 0;
-    }
-    
-    .col-lg-8, .col-lg-4 {
-        padding-right: 15px;
-        padding-left: 15px;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="main-container">
-    <!-- Back Button -->
-    <div class="back-btn">
-        <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Files
-        </a>
-    </div>
+<!-- Content goes inside the base template's content area -->
+<!-- Back Button -->
+<div class="back-btn">
+    <a href="{% url 'textprocessor:file_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Files
+    </a>
+</div>
     
     <!-- Page Header -->
     <div class="page-header">
@@ -435,6 +415,18 @@
             <form method="post" id="quizGenerationForm">
                 {% csrf_token %}
                 
+                {% if not selected_file %}
+                <div class="content-card">
+                    <h4>
+                        <i class="fas fa-keyboard text-primary"></i>
+                        Enter Topic
+                    </h4>
+                    <div class="form-group">
+                        <input type="text" name="manual_topic" class="form-control" placeholder="Enter topic for quiz" value="{{ request.POST.manual_topic }}">
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- File Selection (if no file selected) -->
                 {% if not selected_file %}
                 <div class="content-card">
@@ -579,7 +571,7 @@
         
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <div class="sidebar">
+            <div class="custom-sidebar">
                 <div class="tips-section">
                     <h6>
                         <i class="fas fa-lightbulb text-warning"></i>
