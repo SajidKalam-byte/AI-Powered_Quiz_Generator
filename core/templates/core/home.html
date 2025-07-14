@@ -1,6 +1,1494 @@
-{% extends 'base/auth_base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub - AI-Powered Quiz Generator</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #4361ee !important;
+        }
+        
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="150" fill="url(%23a)"/><circle cx="800" cy="300" r="100" fill="url(%23a)"/><circle cx="600" cy="700" r="200" fill="url(%23a)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #fff, #f8f9ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: slideInUp 1s ease-out;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: slideInUp 1s ease-out 0.2s both;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+            animation: slideInUp 1s ease-out 0.4s both;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .btn-hero {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin: 0 10px 10px 0;
+            display: inline-block;
+            animation: slideInUp 1s ease-out 0.6s both;
+        }
+        
+        .btn-primary-hero {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #000;
+            border: none;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        }
+        
+        .btn-primary-hero:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+            color: #000;
+        }
+        
+        .btn-outline-hero {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-outline-hero:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+            transform: translateY(-3px);
+            color: white;
+        }
+        
+        .hero-badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .hero-stats {
+            margin-top: 3rem;
+        }
+        
+        .hero-stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .hero-stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fbbf24;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hero-stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Features Section */
+        .features-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: none;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .feature-description {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+        
+        /* How It Works Section */
+        .how-it-works-section {
+            padding: 100px 0;
+            background: white;
+        }
+        
+        .step-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            height: 100%;
+            position: relative;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border-color: #e879f9;
+        }
+        
+        .step-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(45deg, #4361ee, #7209b7);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+            color: white;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .step-card:hover .step-icon {
+            transform: scale(1.1);
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        /* Tech Stack Section */
+        .tech-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: white;
+        }
+        
+        .tech-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .tech-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .tech-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .tech-card:hover .tech-icon {
+            transform: scale(1.1);
+        }
+        
+        .tech-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .tech-description {
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+        
+        .tech-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tech-list li {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tech-list li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(45deg, #a855f7, #3b82f6);
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            color: white;
+        }
+        
+        .stat-item {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 2rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            display: block;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        /* Testimonials Section */
+        .testimonials-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+        
+        .testimonial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: none;
+            height: 100%;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .testimonial-stars {
+            color: #fbbf24;
+            margin-bottom: 20px;
+        }
+        
+        .testimonial-quote {
+            font-size: 3rem;
+            color: #e5e7eb;
+            margin-bottom: 20px;
+        }
+        
+        .testimonial-content {
+            color: #6c757d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 16px;
+            background: linear-gradient(45deg, #4361ee, #7209b7);
+        }
+        
+        .testimonial-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        
+        .testimonial-role {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 0;
+            background: white;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            height: 100%;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .pricing-card.popular {
+            border-color: #4361ee;
+            box-shadow: 0 20px 60px rgba(67, 97, 238, 0.2);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #4361ee, #7209b7);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .pricing-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .pricing-period {
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .pricing-description {
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #6c757d;
+        }
+        
+        .pricing-features li i {
+            color: #10b981;
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            padding: 100px 0;
+            color: white;
+            text-align: center;
+        }
+        
+        .cta-badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .cta-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .cta-highlight {
+            background: linear-gradient(45deg, #fbbf24, #ec4899);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .cta-description {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-logos {
+            margin-top: 60px;
+            opacity: 0.6;
+        }
+        
+        .cta-logos .logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 20px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1a252f;
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #4361ee;
+        }
+        
+        .footer-link {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .footer-link:hover {
+            color: #4361ee;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            color: #4361ee;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background: #4361ee;
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .footer-contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #adb5bd;
+        }
+        
+        .footer-contact-item i {
+            color: #4361ee;
+            margin-right: 12px;
+            width: 16px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            .btn-hero {
+                display: block;
+                margin: 10px 0;
+                width: 100%;
+            }
+            .cta-title {
+                font-size: 2.5rem;
+            }
+        }
+        
+        /* Gradient Backgrounds */
+        .bg-gradient-purple { background: linear-gradient(45deg, #a855f7, #3b82f6); }
+        .bg-gradient-blue { background: linear-gradient(45deg, #3b82f6, #06b6d4); }
+        .bg-gradient-green { background: linear-gradient(45deg, #10b981, #059669); }
+        .bg-gradient-orange { background: linear-gradient(45deg, #f59e0b, #dc2626); }
+        .bg-gradient-indigo { background: linear-gradient(45deg, #6366f1, #a855f7); }
+        .bg-gradient-teal { background: linear-gradient(45deg, #14b8a6, #10b981); }
+        .bg-gradient-gray { background: linear-gradient(45deg, #6b7280, #4b5563); }
+        .bg-gradient-yellow { background: linear-gradient(45deg, #fbbf24, #f59e0b); }
+        .bg-gradient-pink { background: linear-gradient(45deg, #ec4899, #be185d); }
+        
+        /* Button link styles for pricing cards */
+        .text-inherit {
+            color: inherit !important;
+        }
+        
+        .text-white {
+            color: white !important;
+        }
+        
+        /* Fix footer text visibility */
+        .footer .text-light {
+            color: #e9ecef !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" id="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-mortarboard-fill me-2"></i>QuizHub
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="ms-auto">
+                    <a class="btn btn-outline-primary me-2" href="{% url 'users:login' %}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-plus me-1"></i>Sign Up
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'users:student_register' %}">
+                                <i class="bi bi-person me-2"></i>Student
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'users:teacher_register' %}">
+                                <i class="bi bi-mortarboard me-2"></i>Teacher
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-{% block content %}
-home page
-{% endblock %}
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="bi bi-stars text-warning me-2"></i>
+                            <span>AI-Powered Assessment Revolution</span>
+                        </div>
+                        
+                        <h1 class="hero-title">
+                            Transform Learning with<br>
+                            <span style="background: linear-gradient(45deg, #fbbf24, #ec4899); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                Intelligent Quizzes
+                            </span>
+                        </h1>
+                        
+                        <p class="hero-subtitle">
+                            Empower learners with instant, AI-driven assessments to reinforce knowledge and accelerate mastery
+                        </p>
+                        
+                        <p class="hero-description">
+                            Upload any syllabus or document, and our advanced AI instantly generates high-quality multiple-choice 
+                            questions with detailed explanations. Perfect for educators, trainers, and self-learners seeking on-demand assessment.
+                        </p>
+                        
+                        <div class="hero-buttons">
+                            <a href="{% url 'users:login' %}" class="btn btn-primary-hero btn-hero">
+                                <i class="bi bi-rocket-takeoff me-2"></i>Start Creating Quizzes
+                            </a>
+                            <a href="#demo" class="btn btn-outline-hero btn-hero">
+                                <i class="bi bi-play-circle me-2"></i>Watch Demo
+                            </a>
+                        </div>
+                        
+                        <div class="hero-stats">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="hero-stat-card">
+                                        <span class="hero-stat-number">95%</span>
+                                        <span class="hero-stat-label">Time Reduction</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="hero-stat-card">
+                                        <span class="hero-stat-number">10K+</span>
+                                        <span class="hero-stat-label">Quizzes Generated</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="hero-stat-card">
+                                        <span class="hero-stat-number">50+</span>
+                                        <span class="hero-stat-label">Subject Areas</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Why Choose QuizHub?</h2>
+                    <p class="lead text-muted">Discover the power of AI-driven assessment creation and management with features designed for modern education</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-purple">
+                            <i class="bi bi-brain"></i>
+                        </div>
+                        <h3 class="feature-title">AI-Powered Topic Extraction</h3>
+                        <p class="feature-description">
+                            Our advanced AI breaks down uploaded documents into logical sections and topics, ensuring comprehensive coverage of your content.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-blue">
+                            <i class="bi bi-lightning-charge"></i>
+                        </div>
+                        <h3 class="feature-title">Instant MCQ Generation</h3>
+                        <p class="feature-description">
+                            Generate high-quality multiple-choice questions with plausible distractors and correct options in seconds using GPT-4 technology.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-green">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                        <h3 class="feature-title">Real-time Scoring & Feedback</h3>
+                        <p class="feature-description">
+                            Get immediate grading with AI-driven explanations that help students understand their mistakes and learn effectively.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-orange">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="feature-title">Multi-Role Dashboard</h3>
+                        <p class="feature-description">
+                            Customized experiences for students, teachers, and administrators with role-specific features and permissions.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-indigo">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="feature-title">Advanced Analytics</h3>
+                        <p class="feature-description">
+                            Track performance with detailed analytics, identify learning gaps, and monitor progress with comprehensive reporting tools.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-teal">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <h3 class="feature-title">Multiple File Formats</h3>
+                        <p class="feature-description">
+                            Support for .txt, .pdf, and .docx files. Upload any syllabus or educational content and start generating quizzes instantly.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-gray">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="feature-title">Enterprise Security</h3>
+                        <p class="feature-description">
+                            Built with security and privacy in mind. Your data is protected with enterprise-grade security measures and reliable infrastructure.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-yellow">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <h3 class="feature-title">Time-Saving Automation</h3>
+                        <p class="feature-description">
+                            Reduce quiz creation time from hours to minutes. Focus on teaching while our AI handles the heavy lifting of question generation.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-gradient-pink">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <h3 class="feature-title">Adaptive Learning</h3>
+                        <p class="feature-description">
+                            Smart question selection based on student performance, ensuring personalized learning experiences and optimal knowledge retention.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+                    <p class="lead text-muted">From content upload to detailed analytics - experience the complete AI-powered quiz generation workflow</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="bi bi-upload"></i>
+                            <div class="step-number">01</div>
+                        </div>
+                        <h3 class="step-title">Upload Your Content</h3>
+                        <p class="step-description">
+                            Upload syllabus documents in .txt, .pdf, or .docx format. Our system securely processes your educational content.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="bi bi-brain"></i>
+                            <div class="step-number">02</div>
+                        </div>
+                        <h3 class="step-title">AI Topic Extraction</h3>
+                        <p class="step-description">
+                            Our advanced AI analyzes your content and breaks it down into logical topics and learning objectives.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="bi bi-pencil"></i>
+                            <div class="step-number">03</div>
+                        </div>
+                        <h3 class="step-title">Generate MCQs</h3>
+                        <p class="step-description">
+                            Select topics and let our AI generate high-quality multiple-choice questions with detailed explanations.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="bi bi-check-circle"></i>
+                            <div class="step-number">04</div>
+                        </div>
+                        <h3 class="step-title">Take the Quiz</h3>
+                        <p class="step-description">
+                            Students answer questions in an intuitive interface with real-time progress tracking and instant feedback.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="bi bi-bar-chart"></i>
+                            <div class="step-number">05</div>
+                        </div>
+                        <h3 class="step-title">Analyze Results</h3>
+                        <p class="step-description">
+                            Review detailed analytics, performance insights, and export results for comprehensive assessment tracking.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="tech-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3 text-white">Built with Modern Technology</h2>
+                    <p class="lead text-light">Our robust tech stack ensures scalability, security, and performance for educational institutions of all sizes</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-green">
+                            <i class="bi bi-code-slash"></i>
+                        </div>
+                        <h3 class="tech-title">Backend</h3>
+                        <p class="tech-description">Python 3.11, Django 4.x</p>
+                        <ul class="tech-list">
+                            <li>Django REST Framework</li>
+                            <li>Celery for async tasks</li>
+                            <li>Redis for caching</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-blue">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <h3 class="tech-title">Database</h3>
+                        <p class="tech-description">SQLite (dev) → PostgreSQL (prod)</p>
+                        <ul class="tech-list">
+                            <li>Optimized queries</li>
+                            <li>Data migrations</li>
+                            <li>Backup strategies</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-purple">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+                        <h3 class="tech-title">AI Integration</h3>
+                        <p class="tech-description">OpenAI GPT-4 API</p>
+                        <ul class="tech-list">
+                            <li>Azure OpenAI</li>
+                            <li>Custom prompt templates</li>
+                            <li>Fallback handling</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-orange">
+                            <i class="bi bi-cloud"></i>
+                        </div>
+                        <h3 class="tech-title">Deployment</h3>
+                        <p class="tech-description">Docker, Gunicorn, Nginx</p>
+                        <ul class="tech-list">
+                            <li>Container orchestration</li>
+                            <li>Load balancing</li>
+                            <li>Auto-scaling</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-gray">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="tech-title">Security</h3>
+                        <p class="tech-description">Enterprise-grade protection</p>
+                        <ul class="tech-list">
+                            <li>API key rotation</li>
+                            <li>Data encryption</li>
+                            <li>GDPR compliance</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tech-card">
+                        <div class="tech-icon bg-gradient-yellow">
+                            <i class="bi bi-lightning"></i>
+                        </div>
+                        <h3 class="tech-title">Testing</h3>
+                        <p class="tech-description">pytest, Django Test Framework</p>
+                        <ul class="tech-list">
+                            <li>Unit testing</li>
+                            <li>Integration tests</li>
+                            <li>Performance testing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold text-white mb-3">Trusted by Educators Worldwide</h2>
+                    <p class="lead text-light">Join thousands of educators who are transforming their assessment process with QuizHub</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">95%</span>
+                            <span class="stat-label">Time Reduction in Quiz Creation</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">10K+</span>
+                            <span class="stat-label">Quizzes Successfully Generated</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">50+</span>
+                            <span class="stat-label">Subject Areas Covered</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">24/7</span>
+                            <span class="stat-label">AI-Powered Support Available</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">99.9%</span>
+                            <span class="stat-label">Platform Uptime Guarantee</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6">
+                    <div class="stat-item">
+                        <div class="stat-card">
+                            <span class="stat-number">500+</span>
+                            <span class="stat-label">Educational Institutions Served</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">What Educators Say</h2>
+                    <p class="lead text-muted">Hear from educators who are already transforming their teaching with QuizHub</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-content">
+                            "QuizHub has revolutionized how I create assessments. What used to take hours now takes minutes, and the quality of AI-generated questions is impressive."
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar"></div>
+                            <div>
+                                <div class="testimonial-name">Dr. Sarah Johnson</div>
+                                <div class="testimonial-role">Professor of Biology, Stanford University</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-content">
+                            "The instant feedback feature helps my students learn from their mistakes immediately. The analytics dashboard gives me insights I never had before."
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar"></div>
+                            <div>
+                                <div class="testimonial-name">Michael Chen</div>
+                                <div class="testimonial-role">High School Math Teacher</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-content">
+                            "We use QuizHub for employee training assessments. The ability to upload our training materials and generate relevant quizzes is a game-changer."
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar"></div>
+                            <div>
+                                <div class="testimonial-name">Lisa Rodriguez</div>
+                                <div class="testimonial-role">Corporate Training Manager</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Choose Your Plan</h2>
+                    <p class="lead text-muted">Start free and scale as you grow. All plans include our core AI-powered quiz generation features.</p>
+                </div>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-4 col-md-6">
+                    <div class="pricing-card">
+                        <div class="text-center">
+                            <h3 class="pricing-name">Free</h3>
+                            <div class="pricing-price">$0</div>
+                            <div class="pricing-period">forever</div>
+                            <p class="pricing-description">Perfect for individual educators getting started</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> 5 quizzes per month</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Basic AI question generation</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Standard templates</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Email support</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Basic analytics</li>
+                        </ul>
+                        <a href="{% url 'users:student_register' %}" class="btn btn-outline-primary w-100 btn-lg text-decoration-none">Get Started Free</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="pricing-card popular">
+                        <div class="popular-badge">
+                            <i class="bi bi-star-fill me-1"></i>Most Popular
+                        </div>
+                        <div class="text-center">
+                            <h3 class="pricing-name">Pro</h3>
+                            <div class="pricing-price">$29</div>
+                            <div class="pricing-period">per month</div>
+                            <p class="pricing-description">Ideal for active teachers and small institutions</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Unlimited quizzes</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Advanced AI generation</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Custom templates</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Priority support</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Advanced analytics</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Export capabilities</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Multi-format uploads</li>
+                        </ul>
+                        <a href="{% url 'users:teacher_register' %}" class="btn btn-primary w-100 btn-lg text-decoration-none">Start Pro Trial</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="pricing-card">
+                        <div class="text-center">
+                            <h3 class="pricing-name">Enterprise</h3>
+                            <div class="pricing-price">Custom</div>
+                            <div class="pricing-period">pricing</div>
+                            <p class="pricing-description">For large institutions and organizations</p>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Everything in Pro</li>
+                            <li><i class="bi bi-check-circle-fill"></i> White-label solution</li>
+                            <li><i class="bi bi-check-circle-fill"></i> API access</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Custom integrations</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Dedicated support</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Training sessions</li>
+                            <li><i class="bi bi-check-circle-fill"></i> SLA guarantee</li>
+                        </ul>
+                        <button class="btn btn-outline-primary w-100 btn-lg">Contact Sales</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <div class="cta-badge">
+                        <i class="bi bi-stars text-warning me-2"></i>
+                        <span>Ready to Transform Education?</span>
+                    </div>
+                    
+                    <h2 class="cta-title">
+                        Start Creating Smarter<br>
+                        <span class="cta-highlight">Assessments Today</span>
+                    </h2>
+                    
+                    <p class="cta-description">
+                        Join thousands of educators who are already using QuizHub to create better assessments, save time, and 
+                        improve learning outcomes. Start your free trial today.
+                    </p>
+                    
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                        <a href="{% url 'users:login' %}" class="btn btn-primary-hero btn-hero btn-lg">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Start Your Free Trial
+                        </a>
+                        <a href="#demo" class="btn btn-outline-hero btn-hero btn-lg">
+                            Schedule a Demo
+                        </a>
+                    </div>
+                    
+                    <!-- <div class="cta-logos mt-5">
+                        <p class="text-muted mb-3">Trusted by educators at</p>
+                        <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
+                            <span class="logo">Stanford University</span>
+                            <span class="logo">MIT</span>
+                            <span class="logo">Harvard</span>
+                            <span class="logo">Oxford</span>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="footer-title">
+                        <i class="bi bi-mortarboard-fill me-2"></i>QuizHub
+                    </h5>
+                    <p class="text-muted mb-4">
+                        Empowering education through intelligent assessment. Create, share, and analyze quizzes with the power of AI.
+                    </p>
+                    <div class="mt-3">
+                        <a href="#" class="social-icon"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="social-icon"><i class="bi bi-github"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 mb-4">
+                    <h6 class="footer-title">Platform</h6>
+                    <a href="#" class="footer-link">Features</a>
+                    <a href="#" class="footer-link">Pricing</a>
+                    <a href="#" class="footer-link">Security</a>
+                    <a href="#" class="footer-link">API Documentation</a>
+                    <a href="#" class="footer-link">Integrations</a>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6 mb-4">
+                    <h6 class="footer-title">Resources</h6>
+                    <a href="#" class="footer-link">Documentation</a>
+                    <a href="#" class="footer-link">Tutorials</a>
+                    <a href="#" class="footer-link">Blog</a>
+                    <a href="#" class="footer-link">Support Center</a>
+                    <a href="#" class="footer-link">Community</a>
+                </div>
+                <div class="col-lg-2 col-md-6 col-6 mb-4">
+                    <h6 class="footer-title">Company</h6>
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link">Careers</a>
+                    <a href="#" class="footer-link">Contact</a>
+                    <a href="#" class="footer-link">Partners</a>
+                </div>
+                <div class="col-lg-2 col-md-6 col-6 mb-4">
+                    <h6 class="footer-title">Contact</h6>
+                    <div class="footer-contact-item">
+                        <i class="bi bi-envelope"></i>
+                        <span></span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="bi bi-telephone"></i>
+                        
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: #495057;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-light">&copy; 2025 QuizHub. All rights reserved. | MIT License</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex flex-wrap justify-content-md-end gap-3 mt-2 mt-md-0">
+                        <a href="#" class="footer-link">Privacy Policy</a>
+                        <a href="#" class="footer-link">Terms of Service</a>
+                        <a href="#" class="footer-link">Cookie Policy</a>
+                        <a href="#" class="footer-link">GDPR</a>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p class="text-light mb-0">Made with <i class="bi bi-heart-fill text-danger"></i> for educators worldwide | Empowering knowledge through AI</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Navbar background change on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Add animation on scroll for cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all cards for animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.feature-card, .step-card, .tech-card, .testimonial-card, .pricing-card');
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

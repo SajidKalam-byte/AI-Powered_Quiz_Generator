@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
@@ -135,12 +136,11 @@ def teacher_register(request):
     return render(request, 'users/teacher_register.html')
 
 
+@never_cache
 def user_login(request):
-    next_url = request.GET.get('next', '')
-    
-    # Check if already authenticated
+    # Redirect authenticated users to their dashboard
     if request.user.is_authenticated:
-        return _redirect_authenticated_user(request, request.user, next_url)
+        return _redirect_authenticated_user(request, request.user, '')
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -151,47 +151,31 @@ def user_login(request):
             return redirect('users:login')
 
         user = authenticate(request, username=username, password=password)
-
         if user:
             login(request, user)
-            # Set session expiry
             request.session.set_expiry(3600)  # 1 hour
-            request.session['last_activity'] = str(timezone.now())
-
             messages.success(request, f"Welcome back, {user.full_name or user.username}!")
+            return _redirect_authenticated_user(request, user, '')
+        messages.error(request, "Invalid username or password.")
+        return redirect('users:login')
 
-            # Redirect to appropriate dashboard based on user role and next URL
-            return _redirect_authenticated_user(request, user, next_url)
-        else:
-            messages.error(request, "Invalid username or password.")
-            if next_url:
-                return redirect(f"{reverse('users:login')}?next={next_url}")
-            return redirect('users:login')
-
-    # Add convenience login options for development
-    context = {
-        'next': next_url,
-        'demo_accounts': [
-            {'username': 'admin', 'role': 'Administrator', 'description': 'Full access to admin panel'},
-            {'username': 'student1', 'role': 'Student', 'description': 'Student dashboard access'},
-            {'username': 'teacher1', 'role': 'Teacher', 'description': 'Teacher dashboard access'},
-        ] if settings.DEBUG else []
-    }
-    
-    return render(request, 'users/login.html', context)
+    # Render login template
+    return render(request, 'users/login.html')
 
 
 def user_logout(request):
     logout(request)
     messages.success(request, "You have been logged out.")
-    return redirect('users:login')
+    return redirect('core:home')
 
 
-@login_required
 def dashboard(request):
     """
     Unified dashboard view that renders role-specific dashboard templates.
     """
+    # Redirect unauthenticated users to login without next param
+    if not request.user.is_authenticated:
+        return redirect('users:login')
     user = request.user
     
     # For admin users, redirect to admin dashboard

@@ -4,7 +4,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('users.urls', namespace='users')),
+    # Landing page
+    path('', include('core.urls', namespace='core')),
+    # User authentication and dashboard
+    path('users/', include('users.urls', namespace='users')),
     path('core/', include('core.urls')),
     path('quiz/', include(('quizzes.urls', 'quizzes'), namespace='quizzes')),
     path('textprocessor/', include('textprocessor.urls')),

@@ -166,4 +166,4 @@ LOGGING = {
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Custom login URL for redirects - needed for @login_required decorator
-LOGIN_URL = 'users:login'
+LOGIN_URL = 'users:login'  # This points to /users/login/

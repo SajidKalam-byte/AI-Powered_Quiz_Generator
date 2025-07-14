@@ -12,6 +12,7 @@ class AuthenticationMiddleware:
     def __call__(self, request):
         # Skip middleware for certain paths
         public_urls = [
+            '/',  # Allow landing page
             reverse('users:login'),
             reverse('users:student_register'),
             reverse('users:teacher_register'),
@@ -38,12 +39,13 @@ class AuthenticationMiddleware:
         if request.path in public_urls or request.path.startswith(settings.STATIC_URL) or request.path.startswith(settings.MEDIA_URL):
             return self.get_response(request)
 
-        # Check if user is authenticated
+        # Check if user is authenticated - only redirect to login for protected URLs
         if not request.user.is_authenticated:
-            # Preserve the 'next' parameter to redirect after login
-            login_url = reverse('users:login')
-            next_param = request.GET.get('next', request.path)
-            return redirect(f"{login_url}?next={next_param}")
+            # Only redirect to login if this is a protected path
+            # Skip redirecting for landing page and other public paths
+            if request.path != '/':
+                login_url = reverse('users:login')
+                return redirect(login_url)
 
         # Session timeout check
         if request.user.is_authenticated and 'last_activity' in request.session:
