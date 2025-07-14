@@ -828,7 +828,7 @@
                     <i class="bi bi-mortarboard"></i>
                     Academic Year
                 </div>
-                <div class="info-value">{{ request.user.academic_year|default:"Not specified" }}</div>
+                <div class="info-value">{{ request.user.academic_year|default:"2025" }}</div>
             </div>
             {% endif %}
             
@@ -836,7 +836,7 @@
             <div class="info-item interactive-card">
                 <div class="info-label">
                     <i class="bi bi-envelope-at"></i>
-                    Teacher Email
+                    Institution Email
                 </div>
                 <div class="info-value">{{ request.user.teacher_email|default:"Not provided" }}</div>
             </div>
@@ -851,7 +851,7 @@
             {% endif %}
         </div>
     </div>
-
+    {% if request.user.role == 'student' %}
     <!-- Quiz Activity Section -->
     <div class="profile-card loading">
         <div class="card-header">
@@ -902,7 +902,7 @@
         </h3>
         
         <div class="table-container">
-            <table class="attempts-table">
+            <table class="attempts-table loading">
                 <thead>
                     <tr>
                         <th><i class="bi bi-journal-text me-2"></i>Quiz Title</th>
@@ -920,7 +920,7 @@
                             <strong>{{ attempt.quiz.title }}</strong>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark">{{ attempt.quiz.category.name }}</span>
+                            <span class="badge bg-light text-dark">{{ attempt.quiz.category.name|default:"AI" }}</span>
                         </td>
                         <td>
                             <span class="badge 
@@ -964,6 +964,7 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
 
     <!-- Created Quizzes Section (for teachers/admins) -->
     {% if request.user.role == 'teacher' or request.user.role == 'admin' %}
@@ -987,7 +988,7 @@
                         <th><i class="bi bi-journal-text me-2"></i>Title</th>
                         <th><i class="bi bi-tag me-2"></i>Category</th>
                         <th><i class="bi bi-question-circle me-2"></i>Questions</th>
-                        <th><i class="bi bi-eye me-2"></i>Views</th>
+                        <!-- <th><i class="bi bi-eye me-2"></i>Views</th> -->
                         <th><i class="bi bi-check-circle me-2"></i>Status</th>
                         <th><i class="bi bi-calendar3 me-2"></i>Created</th>
                         <th><i class="bi bi-three-dots me-2"></i>Actions</th>
@@ -1000,12 +1001,12 @@
                             <a href="#" class="text-decoration-none fw-bold">{{ quiz.title }}</a>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark">{{ quiz.category.name }}</span>
+                            <span class="badge bg-light text-dark">{{ quiz.category.name|default:"AI" }}</span>
                         </td>
                         <td>
                             <span class="badge bg-info">{{ quiz.num_questions|default:quiz.questions.count }} questions</span>
                         </td>
-                        <td>{{ quiz.view_count|default:"0" }}</td>
+                        
                         <td>
                             {% if quiz.is_published %}
                             <span class="status-published">
@@ -1051,7 +1052,7 @@
         {% endif %}
     </div>
     {% endif %}
-
+    {% if request.user.role == 'student' %}
     <!-- Achievement Section -->
     <div class="profile-card loading">
         <div class="card-header">
@@ -1092,6 +1093,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 

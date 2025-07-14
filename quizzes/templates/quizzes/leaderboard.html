@@ -63,10 +63,10 @@
                                 {% endif %}
                                 
                                 <div class="user-avatar-large mx-auto mb-3">
-                                    {{ user.username|slice:":2"|upper }}
+                                    {{ user.full_name|slice:":2"|upper }}
                                 </div>
                                 
-                                <h5 class="fw-bold">{{ user.username }}</h5>
+                                <h5 class="fw-bold">{{ user.full_name }}</h5>
                                 <p class="text-primary fw-bold mb-2">{{ user.points }} points</p>
                                 <small class="text-muted">{{ user.quizzes_completed }} quizzes completed</small>
                             </div>
@@ -103,10 +103,10 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="user-avatar me-3">
-                                                {{ user.username|slice:":2"|upper }}
+                                                {{ user.full_name|slice:":2"|upper }}
                                             </div>
                                             <div>
-                                                <div class="fw-semibold">{{ user.username }}</div>
+                                                <div class="fw-semibold">{{ user.full_name }}</div>
                                                 {% if user.user_id == request.user.id %}
                                                     <small class="text-primary">You</small>
                                                 {% endif %}

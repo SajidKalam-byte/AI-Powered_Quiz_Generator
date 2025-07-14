@@ -1,15 +1,88 @@
 {% extends dashboard_template %}
 {% load static %}
-
+{% load text_filters %}
 {% block title %}{{ file.original_filename }} - Insights{% endblock %}
 
 {% block extra_css %}
 <style>
     .insights-header { margin-bottom: 2rem; }
-    .summary-card, .qa-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-    .qa-input-group { display: flex; gap: 1rem; margin-top: 1rem; }
-    .qa-input { flex-grow: 1; }
-    .answer-box { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem; min-height: 100px; }
+    .summary-card, .qa-card { 
+        background: white; 
+        border-radius: 15px; 
+        padding: 2rem; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+        margin-bottom: 2rem; 
+    }
+    .qa-input-group { 
+        display: flex; 
+        gap: 1rem; 
+        margin-top: 1rem; 
+    }
+    .qa-input { 
+        flex-grow: 1; 
+    }
+    .answer-box { 
+        background: #f8f9fa; 
+        border-radius: 8px; 
+        padding: 1.5rem; 
+        margin-top: 1rem; 
+        min-height: 120px; 
+        transition: opacity 0.3s ease; 
+    }
+    .question-history { 
+        margin-top: 2rem; 
+        max-height: 300px; 
+        overflow-y: auto; 
+        padding-right: 1rem; 
+    }
+    .history-item { 
+        border-left: 3px solid #007bff; 
+        padding-left: 1rem; 
+        margin-bottom: 1rem; 
+    }
+    .history-item p { 
+        margin: 0.5rem 0; 
+    }
+    .summary-content ul { 
+        padding-left: 1.5rem; 
+    }
+    .summary-content ul li { 
+        margin-bottom: 0.5rem; 
+    }
+    .collapsible-toggle { 
+        cursor: pointer; 
+        color: #007bff; 
+        font-weight: 500; 
+    }
+    .collapsible-content { 
+        display: none; 
+        margin-top: 1rem; 
+    }
+    .collapsible-content.active { 
+        display: block; 
+    }
+    .error-message { 
+        color: #dc3545; 
+        font-style: italic; 
+    }
+    .loading-spinner { 
+        display: none; 
+        margin-left: 1rem; 
+    }
+    .loading-spinner.active { 
+        display: inline-block; 
+    }
+    .btn:disabled { 
+        cursor: not-allowed; 
+    }
+    @media (max-width: 576px) {
+        .qa-input-group { 
+            flex-direction: column; 
+        }
+        .qa-input, .qa-btn { 
+            width: 100%; 
+        }
+    }
 </style>
 {% endblock %}
 
@@ -25,17 +98,54 @@
 
     <div class="summary-card">
         <h4><i class="fas fa-file-alt me-2"></i>Summary</h4>
-        <p>{{ summary }}</p>
+        <div class="summary-content">
+            {% if summary %}
+                {% with lines=summary|split:"\n" %}
+                    {% for line in lines %}
+                        {% if line|startswith:"**" %}
+                            {% if line|length > 4 and line|slice:"2:-2"|wordcount > 0 %}
+                                <h5>{{ line|slice:"2:-2" }}</h5>
+                            {% endif %}
+                        {% elif line|startswith:"*" %}
+                            <ul>
+                                <li>{{ line|slice:"2:" }}</li>
+                            </ul>
+                        {% else %}
+                            <p>{{ line }}</p>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="collapsible-content" id="fullSummary">
+                        {% for line in lines %}
+                            {% if not line|startswith:"**" and not line|startswith:"*" %}
+                                <p>{{ line }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if lines|length > 5 %}
+                        <p class="collapsible-toggle" id="toggleSummary">Show More</p>
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <p class="text-muted">No summary available.</p>
+            {% endif %}
+        </div>
     </div>
 
     <div class="qa-card">
         <h4><i class="fas fa-question-circle me-2"></i>Ask a Question</h4>
         <div class="qa-input-group">
-            <input type="text" id="questionInput" class="form-control qa-input" placeholder="Type your question here...">
-            <button id="askBtn" class="btn btn-primary">Ask</button>
+            <input type="text" id="questionInput" class="form-control qa-input" placeholder="Type your question here..." aria-label="Ask a question">
+            <button id="askBtn" class="btn btn-primary qa-btn" disabled>
+                <i class="fas fa-paper-plane me-2"></i>Ask
+                <span class="spinner-border spinner-border-sm loading-spinner" role="status" aria-hidden="true"></span>
+            </button>
+            <button id="clearBtn" class="btn btn-outline-secondary qa-btn">Clear</button>
         </div>
         <div id="answerBox" class="answer-box text-muted">
             Your answer will appear here.
+        </div>
+        <div class="question-history" id="questionHistory">
+            <h5>Question History</h5>
         </div>
     </div>
 </div>
@@ -60,15 +170,40 @@ function getCookie(name) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const askBtn = document.getElementById('askBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const questionInput = document.getElementById('questionInput');
     const answerBox = document.getElementById('answerBox');
+    const questionHistory = document.getElementById('questionHistory');
+    const toggleSummary = document.getElementById('toggleSummary');
+    const fullSummary = document.getElementById('fullSummary');
+    const spinner = askBtn.querySelector('.loading-spinner');
     const csrftoken = getCookie('csrftoken');
     const qaUrl = '{% url "textprocessor:file_qa_api" file.id %}';
+    let history = [];
 
+    // Enable/disable ask button based on input
+    questionInput.addEventListener('input', () => {
+        askBtn.disabled = !questionInput.value.trim();
+    });
+
+    // Toggle summary visibility
+    if (toggleSummary) {
+        toggleSummary.addEventListener('click', () => {
+            fullSummary.classList.toggle('active');
+            toggleSummary.textContent = fullSummary.classList.contains('active') ? 'Show Less' : 'Show More';
+        });
+    }
+
+    // Ask question
     askBtn.addEventListener('click', () => {
         const question = questionInput.value.trim();
         if (!question) return;
+
+        askBtn.disabled = true;
+        spinner.classList.add('active');
         answerBox.textContent = 'Thinking...';
+        answerBox.classList.remove('error-message');
+
         fetch(qaUrl, {
             method: 'POST',
             headers: {
@@ -81,15 +216,46 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.answer) {
                 answerBox.textContent = data.answer;
-            } else if (data.error) {
-                answerBox.textContent = data.error;
+                // Add to history
+                history.unshift({ question, answer: data.answer });
+                updateHistory();
+            } else {
+                answerBox.textContent = data.error || 'No answer received.';
+                answerBox.classList.add('error-message');
             }
         })
         .catch(err => {
             console.error(err);
-            answerBox.textContent = 'Error fetching answer.';
+            answerBox.textContent = 'Error fetching answer. Please try again.';
+            answerBox.classList.add('error-message');
+        })
+        .finally(() => {
+            askBtn.disabled = false;
+            spinner.classList.remove('active');
         });
     });
+
+    // Clear input and answer
+    clearBtn.addEventListener('click', () => {
+        questionInput.value = '';
+        answerBox.textContent = 'Your answer will appear here.';
+        answerBox.classList.remove('error-message');
+        askBtn.disabled = true;
+    });
+
+    // Update question history
+    function updateHistory() {
+        questionHistory.innerHTML = '<h5>Question History</h5>';
+        history.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <p><strong>Q${index + 1}:</strong> ${item.question}</p>
+                <p><strong>A:</strong> ${item.answer}</p>
+            `;
+            questionHistory.appendChild(div);
+        });
+    }
 });
 </script>
 {% endblock %}
