@@ -241,8 +241,8 @@ def quiz_result(request, quiz_id, attempt_id):
             'correct_answer': question.correct_option
         })
         
-        # Store answers in the format expected by the template
-        answers[question.id] = user_answer
+        # Store answers in the format expected by the template (use string keys)
+        answers[str(question.id)] = user_answer
     
     context = {
         'quiz': quiz,
