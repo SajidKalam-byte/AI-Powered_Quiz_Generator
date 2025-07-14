@@ -30,6 +30,8 @@ urlpatterns = [
     path('analytics/api/quiz/<uuid:quiz_id>/', views.quiz_analytics_api, name='quiz_analytics_api'),
     path('analytics/api/user/', views.user_analytics_api, name='user_analytics_api'),
     path('analytics/api/platform/', views.platform_analytics_api, name='platform_analytics_api'),
+    # Teacher specific view
+    path('teacher/quizzes/', views.teacher_quizzes, name='teacher_quizzes'),
     
     # Special features
     path('leaderboard/', views.leaderboard, name='leaderboard'),

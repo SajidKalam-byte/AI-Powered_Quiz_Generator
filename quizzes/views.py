@@ -337,30 +337,28 @@ def leaderboard(request):
 
 def daily_challenge(request):
     """Display today's daily challenge"""
-    challenge = DailyChallenge.get_today_challenge()
-    
-    if not challenge or not challenge.quiz:
+    today_challenge = DailyChallenge.get_today_challenge()
+    # If no active challenge or no associated quiz
+    if not today_challenge or not today_challenge.quiz:
         context = {
-            'no_challenge': True,
+            'daily_challenge': None,
             'dashboard_template': get_dashboard_template(request.user) if request.user.is_authenticated else 'base/auth_base.html'
         }
         return render(request, 'quizzes/daily_challenge.html', context)
-    
-    user_attempted = False
+    # Fetch any completed attempt for today
+    user_attempt = None
     if request.user.is_authenticated:
-        user_attempted = UserQuizAttempt.objects.filter(
+        user_attempt = UserQuizAttempt.objects.filter(
             user=request.user,
-            quiz=challenge.quiz,
+            quiz=today_challenge.quiz,
             status='COMPLETED',
             completed_at__date=timezone.now().date()
-        ).exists()
-    
+        ).first()
     context = {
-        'challenge': challenge,
-        'user_attempted': user_attempted,
+        'daily_challenge': today_challenge,
+        'user_attempt': user_attempt,
         'dashboard_template': get_dashboard_template(request.user) if request.user.is_authenticated else 'base/auth_base.html'
     }
-    
     return render(request, 'quizzes/daily_challenge.html', context)
 
 # ==================== AJAX ENDPOINTS ====================
@@ -488,6 +486,21 @@ def quiz_analytics(request, quiz_id):
     }
     
     return render(request, 'quizzes/quiz_analytics.html', context)
+
+@login_required
+def teacher_quizzes(request):
+    """View for teachers to see their created quizzes and stats"""
+    # Only allow teachers and admins
+    if not request.user.role in ['teacher', 'admin'] and not request.user.is_staff:
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('quizzes:quiz_list')
+    user_quizzes = Quiz.objects.filter(created_by=request.user)
+    # Gather stats for each quiz in template
+    context = {
+        'user_quizzes': user_quizzes,
+        'dashboard_template': get_dashboard_template(request.user)
+    }
+    return render(request, 'quizzes/teacher_quizzes.html', context)
 
 # ==================== ANALYTICS API ENDPOINTS ====================
 

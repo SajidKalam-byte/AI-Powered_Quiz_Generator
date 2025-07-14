@@ -328,6 +328,16 @@
                         <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff or user.role == 'teacher' or user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a href="{% url 'quizzes:teacher_quizzes' %}" class="nav-link">
+                            <i class="bi bi-card-list"></i>
+                            <span>My Quizzes</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endif %}
                 <!-- AI-Powered Quiz Generation -->
                 <li class="nav-item">
                     <a href="{% url 'textprocessor:generate_quiz' %}" class="nav-link">

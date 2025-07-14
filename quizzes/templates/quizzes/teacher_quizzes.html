@@ -1,0 +1,43 @@
+{% extends dashboard_template %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <h2 class="display-5 fw-bold mb-4">My Quizzes</h2>
+    {% if user_quizzes %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Published</th>
+            <th>Attempts</th>
+            <th>Completions</th>
+            <th>Avg Score</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for quiz in user_quizzes %}
+          <tr>
+            <td>{{ quiz.title }}</td>
+            <td>{% if quiz.is_published %}Yes{% else %}No{% endif %}</td>
+            <td>{{ quiz.total_attempts }}</td>
+            <td>{{ quiz.total_completions }}</td>
+            <td>{{ quiz.average_score|floatformat:1 }}%</td>
+            <td>
+              <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-sm btn-outline-primary">View</a>
+              <a href="{% url 'quizzes:quiz_analytics' quiz.id %}" class="btn btn-sm btn-outline-secondary ms-1">Analytics</a>
+              {% if not quiz.is_published %}
+              <a href="{% url 'quizzes:quiz_create' %}?quiz={{ quiz.id }}" class="btn btn-sm btn-outline-success ms-1">Edit</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">You have not created any quizzes yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

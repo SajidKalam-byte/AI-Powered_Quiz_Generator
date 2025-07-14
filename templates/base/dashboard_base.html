@@ -333,12 +333,17 @@
                     </ul>
                 </li>
                 
+                {# Only teachers, admins, and staff can create quizzes #}
+                {% if user.is_authenticated %}
+                    {% if user.is_staff or user.role == 'teacher' or user.role == 'admin' %}
                 <li class="nav-item">
                     <a href="{% url 'quizzes:quiz_create' %}" class="nav-link">
                         <i class="bi bi-plus-circle"></i>
                         <span>Create Quiz</span>
                     </a>
                 </li>
+                    {% endif %}
+                {% endif %}
                 <li class="nav-item">
                     <a href="{% url 'quizzes:quiz_list' %}" class="nav-link">
                         <i class="bi bi-lightbulb"></i>

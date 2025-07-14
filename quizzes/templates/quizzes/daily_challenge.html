@@ -193,9 +193,10 @@
                     <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-collection me-1"></i>All Quizzes
                     </a>
-                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-success btn-sm">
+                    {# Remove Create Quiz option for students; only available to teachers/admin #}
+                    {# <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-success btn-sm">
                         <i class="bi bi-plus-circle me-1"></i>Create Quiz
-                    </a>
+                    </a> #}
                 </div>
             </div>
         </div>
