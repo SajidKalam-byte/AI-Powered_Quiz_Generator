@@ -25,9 +25,8 @@
 15. [Performance & Scalability](#performance--scalability)
 16. [Testing Strategy](#testing-strategy)
 17. [Deployment Guide](#deployment-guide)
-18. [Presentation Guidelines](#presentation-guidelines)
-19. [Future Roadmap](#future-roadmap)
-20. [Troubleshooting & FAQ](#troubleshooting--faq)
+18. [Future Roadmap](#future-roadmap)
+19. [Troubleshooting & FAQ](#troubleshooting--faq)
 
 ---
 
@@ -1367,203 +1366,6 @@ LOGGING = {
 
 ---
 
-## 🎤 Presentation Guidelines
-
-### Key Presentation Points
-
-#### 1. Opening Hook (2 minutes)
-> "Imagine reducing quiz creation time from 2 hours to 2 minutes while improving question quality. That's the power of AI-driven assessment."
-
-**Demo**: Live quiz generation from a sample syllabus
-
-#### 2. Problem Statement (3 minutes)
-- Traditional quiz creation is time-consuming
-- Maintaining question quality is challenging
-- Students need immediate feedback for effective learning
-- Scaling personalized assessment is difficult
-
-#### 3. Solution Overview (5 minutes)
-
-```mermaid
-graph LR
-    A[Upload Content] --> B[AI Processing]
-    B --> C[Quiz Generation]
-    C --> D[Student Assessment]
-    D --> E[Instant Feedback]
-```
-
-**Key Features:**
-- ✅ AI-powered question generation
-- ✅ Multi-role user management
-- ✅ Instant scoring and feedback
-- ✅ Comprehensive analytics
-
-#### 4. Technical Deep Dive (8 minutes)
-
-**Architecture Highlights:**
-```python
-# Show actual code snippet
-class AIQuizGenerator:
-    def generate_quiz(self, content, parameters):
-        # Primary: Google Gemini
-        try:
-            return self._generate_with_gemini(content, parameters)
-        except:
-            # Fallback: OpenAI GPT
-            return self._generate_with_openai(content, parameters)
-```
-
-**AI Integration:**
-- Google Gemini API for primary generation
-- OpenAI GPT-4 as intelligent fallback
-- Rule-based backup for reliability
-
-#### 5. Live Demonstration (7 minutes)
-
-**Suggested Demo Flow:**
-1. **Teacher Workflow**: Upload syllabus → Generate quiz → Review questions
-2. **Student Experience**: Take quiz → Submit answers → View detailed feedback
-3. **Admin Analytics**: Performance dashboard → Export reports
-
-#### 6. Impact & Results (3 minutes)
-
-**Quantifiable Benefits:**
-- 95% reduction in quiz creation time
-- Improved question consistency
-- Real-time performance insights
-- Scalable assessment solution
-
-#### 7. Future Vision (2 minutes)
-
-**Roadmap:**
-- Adaptive difficulty adjustment
-- Multi-language support
-- Advanced analytics with ML insights
-- Mobile application development
-
-### Presentation Tips
-
-#### Visual Aids
-- Use clean, professional slides
-- Include actual screenshots from the application
-- Show real code snippets for technical audiences
-- Use diagrams for architecture explanation
-
-#### Handling Questions
-
-**Common Questions & Answers:**
-
-**Q: "How do you ensure AI-generated questions are educationally sound?"**
-A: "We implement a multi-layer validation system including AI quality metrics, teacher review processes, and feedback loops from student performance data."
-
-**Q: "What happens if the AI services are unavailable?"**
-A: "Our system includes intelligent fallback mechanisms - if Gemini fails, we switch to OpenAI, and if both fail, we have rule-based generation to ensure continuous service."
-
-**Q: "How do you handle different subjects and complexity levels?"**
-A: "Our AI prompts are designed to be subject-agnostic, and we use content analysis to automatically adjust difficulty levels and question types based on the input material."
-
-**Q: "What's the cost of running AI services?"**
-A: "We optimize costs through intelligent caching, batch processing, and usage analytics. The time savings for educators far outweigh the AI service costs."
-
-#### Audience-Specific Adaptations
-
-**For Educators:**
-- Focus on time savings and educational quality
-- Emphasize ease of use and student engagement
-- Highlight customization options
-
-**For Technical Teams:**
-- Deep dive into architecture and AI integration
-- Discuss scalability and performance optimizations
-- Show code examples and API structures
-
-**For Business Stakeholders:**
-- Emphasize ROI and scalability
-- Show usage metrics and growth potential
-- Discuss market opportunity and competitive advantages
-
----
-
-## 🛣️ Future Roadmap
-
-### Short-term Enhancements (3-6 months)
-
-#### 1. Advanced Question Types
-```python
-# Planned question types
-QUESTION_TYPES = [
-    'MULTIPLE_CHOICE',     # ✅ Implemented
-    'TRUE_FALSE',          # 🔄 In Development  
-    'SHORT_ANSWER',        # 📋 Planned
-    'ESSAY',              # 📋 Planned
-    'MATCHING',           # 📋 Planned
-    'ORDERING',           # 📋 Planned
-    'FILL_IN_BLANK'       # 📋 Planned
-]
-```
-
-#### 2. Enhanced Analytics
-- Student learning pattern analysis
-- Topic mastery tracking
-- Predictive performance modeling
-- Automated recommendation system
-
-#### 3. Mobile Responsiveness
-- Progressive Web App (PWA) implementation
-- Offline quiz-taking capability
-- Push notifications for new quizzes
-- Mobile-optimized interface
-
-### Medium-term Features (6-12 months)
-
-#### 1. Adaptive Learning
-```python
-class AdaptiveLearningEngine:
-    def adjust_difficulty(self, student_performance):
-        """Dynamically adjust question difficulty based on performance"""
-        if student_performance.accuracy > 0.8:
-            return increase_difficulty()
-        elif student_performance.accuracy < 0.5:
-            return decrease_difficulty()
-        return maintain_current_level()
-```
-
-#### 2. Collaborative Features
-- Peer review for teacher-generated quizzes
-- Student discussion forums
-- Collaborative study groups
-- Social learning features
-
-#### 3. Advanced AI Capabilities
-- Natural language question answering
-- Image-based question generation
-- Video content analysis for quiz creation
-- Multi-modal assessment support
-
-### Long-term Vision (1-2 years)
-
-#### 1. Institutional Integration
-- Learning Management System (LMS) plugins
-- Single Sign-On (SSO) integration
-- Grade book synchronization
-- Institutional analytics dashboard
-
-#### 2. AI-Powered Tutoring
-```python
-class IntelligentTutor:
-    def provide_personalized_help(self, student, topic):
-        """AI tutor for struggling students"""
-        weak_areas = self.analyze_performance(student)
-        return self.generate_study_plan(weak_areas, topic)
-```
-
-#### 3. Global Expansion
-- Multi-language support (Spanish, French, German, etc.)
-- Regional curriculum alignment
-- Cultural adaptation of content
-- International accessibility compliance
-
----
 
 ## 🔧 Troubleshooting & FAQ
 
@@ -1701,7 +1503,7 @@ A: Yes, prompts can be customized in `ai/utils.py`. Advanced users can modify th
 
 ### Support Contacts
 
-- **Technical Support**: sajid.kalam@example.com
+- **Technical Support**: https://github.com/SajidKalam-byte
 - **Documentation**: [GitHub Wiki](https://github.com/SajidKalam-byte/AI-Powered_Quiz_Generator/wiki)
 - **Bug Reports**: [GitHub Issues](https://github.com/SajidKalam-byte/AI-Powered_Quiz_Generator/issues)
 - **Feature Requests**: [GitHub Discussions](https://github.com/SajidKalam-byte/AI-Powered_Quiz_Generator/discussions)
@@ -1740,7 +1542,6 @@ This project demonstrates how AI can be thoughtfully integrated into educational
 **Last Updated**: July 14, 2025  
 **Version**: 1.0.0  
 **Author**: Sajid Kalam  
-**License**: MIT License  
 
 ---
 
