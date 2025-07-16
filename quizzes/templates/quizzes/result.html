@@ -2,29 +2,41 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid px-2 px-md-4 py-3 py-md-5">
     <!-- Header Section -->
-    <div class="row mb-5">
+    <div class="row mb-3 mb-md-5">
         <div class="col-12 text-center">
-            <div class="glass-morphism p-5 rounded-4">
-                <h1 class="display-4 fw-bold gradient-text mb-3">
+            <div class="glass-morphism p-3 p-md-5 rounded-3">
+                <h1 class="h3 h2-md fw-bold gradient-text mb-2 mb-md-3">
                     <i class="bi bi-trophy-fill me-2"></i>Quiz Results
                 </h1>
-                <p class="lead text-muted mb-0">{{ quiz.title }}</p>
+                <p class="lead text-muted mb-0 fs-6 fs-5-md">{{ quiz.title }}</p>
             </div>
         </div>
     </div>
 
     <!-- Results Summary -->
-    <div class="row justify-content-center mb-5">
+    <div class="row justify-content-center mb-3 mb-md-5">
         <div class="col-lg-10">
-            <div class="card-glass rounded-4 p-5">
+            <div class="card-glass rounded-3 p-3 p-md-5">
                 <div class="row align-items-center">
-                    <div class="col-lg-7 mb-4 mb-lg-0">
-                        <div class="d-flex flex-column flex-lg-row align-items-center gap-4">
+                    <div class="col-lg-7 mb-3 mb-lg-0">
+                        <div class="d-flex flex-column flex-lg-row align-items-center gap-3 gap-md-4">
                             <!-- Score Circle -->
                             <div class="score-container position-relative">
-                                <svg width="140" height="140" class="score-svg">
+                                <svg width="100" height="100" class="score-svg d-block d-md-none">
+                                    <defs>
+                                        <linearGradient id="progressGradientMobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="url(#progressGradientMobile)" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="251" class="score-progress"
+                                            data-score="{{ score|div:total|mul:100|floatformat:0 }}"/>
+                                </svg>
+                                <svg width="140" height="140" class="score-svg d-none d-md-block">
                                     <defs>
                                         <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                             <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
@@ -37,41 +49,41 @@
                                             data-score="{{ score|div:total|mul:100|floatformat:0 }}"/>
                                 </svg>
                                 <div class="score-percent position-absolute top-50 start-50 translate-middle">
-                                    <span class="score-number">0</span>%
+                                    <span class="score-number fs-5 fs-4-md">0</span>%
                                 </div>
                             </div>
                             
                             <!-- Score Details -->
                             <div class="score-details flex-grow-1">
-                                <div class="score-stat mb-3">
-                                    <div class="d-flex align-items-center gap-3">
+                                <div class="score-stat mb-2 mb-md-3">
+                                    <div class="d-flex align-items-center gap-2 gap-md-3">
                                         <div class="stat-icon bg-success">
                                             <i class="bi bi-check-circle-fill"></i>
                                         </div>
                                         <div>
-                                            <h4 class="mb-0 text-success">{{ score }}</h4>
+                                            <h4 class="mb-0 text-success fs-6 fs-5-md">{{ score }}</h4>
                                             <small class="text-muted">Correct Answers</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="score-stat mb-3">
-                                    <div class="d-flex align-items-center gap-3">
+                                <div class="score-stat mb-2 mb-md-3">
+                                    <div class="d-flex align-items-center gap-2 gap-md-3">
                                         <div class="stat-icon bg-danger">
                                             <i class="bi bi-x-circle-fill"></i>
                                         </div>
                                         <div>
-                                            <h4 class="mb-0 text-danger">{{ total|sub:score }}</h4>
+                                            <h4 class="mb-0 text-danger fs-6 fs-5-md">{{ total|sub:score }}</h4>
                                             <small class="text-muted">Incorrect Answers</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="score-stat">
-                                    <div class="d-flex align-items-center gap-3">
+                                    <div class="d-flex align-items-center gap-2 gap-md-3">
                                         <div class="stat-icon bg-primary">
                                             <i class="bi bi-question-circle-fill"></i>
                                         </div>
                                         <div>
-                                            <h4 class="mb-0 text-primary">{{ total }}</h4>
+                                            <h4 class="mb-0 text-primary fs-6 fs-5-md">{{ total }}</h4>
                                             <small class="text-muted">Total Questions</small>
                                         </div>
                                     </div>
@@ -81,22 +93,22 @@
                     </div>
                     
                     <div class="col-lg-5 text-center">
-                        <div class="result-badge-wrapper mb-4">
+                        <div class="result-badge-wrapper mb-3 mb-md-4">
                             {% if score|div:total|mul:100 >= 80 %}
                             <div class="result-badge excellent">
                                 <i class="bi bi-star-fill me-2"></i>Excellent!
                             </div>
-                            <p class="text-muted mt-2">Outstanding performance!</p>
+                            <p class="text-muted mt-2 small">Outstanding performance!</p>
                             {% elif score|div:total|mul:100 >= 60 %}
                             <div class="result-badge good">
                                 <i class="bi bi-hand-thumbs-up-fill me-2"></i>Good Job!
                             </div>
-                            <p class="text-muted mt-2">Well done, keep it up!</p>
+                            <p class="text-muted mt-2 small">Well done, keep it up!</p>
                             {% else %}
                             <div class="result-badge needs-improvement">
                                 <i class="bi bi-arrow-up-circle-fill me-2"></i>Keep Trying!
                             </div>
-                            <p class="text-muted mt-2">Practice makes perfect!</p>
+                            <p class="text-muted mt-2 small">Practice makes perfect!</p>
                             {% endif %}
                         </div>
                         
@@ -255,19 +267,19 @@
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .card-glass {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     transition: var(--transition);
 }
 
 .card-glass:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
 }
 
 .gradient-text {
@@ -278,20 +290,27 @@
 }
 
 .btn-glow {
-    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
     transition: var(--transition);
 }
 
 .btn-glow:hover {
-    box-shadow: 0 0 25px rgba(13, 110, 253, 0.5);
-    transform: translateY(-3px);
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+    transform: translateY(-1px);
 }
 
 /* Score Circle */
 .score-container {
     position: relative;
-    width: 140px;
-    height: 140px;
+    width: 100px;
+    height: 100px;
+}
+
+@media (min-width: 768px) {
+    .score-container {
+        width: 140px;
+        height: 140px;
+    }
 }
 
 .score-svg {
@@ -303,9 +322,15 @@
 }
 
 .score-percent {
-    font-size: 2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--primary-color);
+}
+
+@media (min-width: 768px) {
+    .score-percent {
+        font-size: 2rem;
+    }
 }
 
 .score-number {
@@ -314,25 +339,41 @@
 
 /* Score Stats */
 .stat-icon {
-    width: 45px;
-    height: 45px;
+    width: 35px;
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 8px;
     color: white;
-    font-size: 1.3rem;
+    font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+    }
 }
 
 /* Result Badges */
 .result-badge {
     display: inline-flex;
     align-items: center;
-    padding: 12px 24px;
+    padding: 8px 16px;
     border-radius: 50px;
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     transition: var(--transition);
+}
+
+@media (min-width: 768px) {
+    .result-badge {
+        padding: 12px 24px;
+        font-size: 1.2rem;
+    }
 }
 
 .result-badge.excellent {
@@ -352,13 +393,19 @@
 
 /* Questions Review */
 .result-card {
-    border-left: 5px solid transparent;
+    border-left: 3px solid transparent;
     transition: var(--transition);
     cursor: pointer;
 }
 
+@media (min-width: 768px) {
+    .result-card {
+        border-left-width: 5px;
+    }
+}
+
 .result-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .result-card.correct-result {
@@ -370,8 +417,8 @@
 }
 
 .question-number {
-    width: 45px;
-    height: 45px;
+    width: 35px;
+    height: 35px;
     background: linear-gradient(135deg, #0d6efd, #6610f2);
     color: white;
     border-radius: 50%;
@@ -379,13 +426,30 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    font-size: 0.8rem;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+@media (min-width: 768px) {
+    .question-number {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
 }
 
 .section-title {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #6c757d;
+}
+
+@media (min-width: 768px) {
+    .section-title {
+        font-size: 0.95rem;
+    }
+}
     margin-bottom: 10px;
 }
 

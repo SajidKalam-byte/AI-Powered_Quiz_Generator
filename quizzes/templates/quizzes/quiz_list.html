@@ -1,24 +1,24 @@
 {% extends dashboard_template %}
 
 {% block content %}
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid px-2 px-md-4 py-3 py-md-5">
     <!-- Header with Search and Filters -->
-    <div class="row mb-5">
+    <div class="row mb-3 mb-md-5">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="display-5 fw-bold mb-0 gradient-text">Available Quizzes</h2>
+            <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4 flex-column flex-md-row gap-2">
+                <h2 class="h4 h3-md fw-bold mb-0 gradient-text">Available Quizzes</h2>
                 {% if user.is_authenticated %}
                     {% if user.is_staff or user.role == 'teacher' or user.role == 'admin' %}
-                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-primary btn-glow">
-                        <i class="bi bi-plus-circle me-2"></i>Create Quiz
+                    <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-primary btn-glow btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Create Quiz
                     </a>
                     {% endif %}
                 {% endif %}
             </div>
             
             <!-- Search and Filter Bar -->
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
+            <form method="get" class="row g-2 g-md-3">
+                <div class="col-12 col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0">
                             <i class="bi bi-search"></i>
@@ -27,8 +27,8 @@
                                value="{{ search_query }}" placeholder="Search quizzes...">
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="category">
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm">
                         <option value="">All Categories</option>
                         {% for category in categories %}
                             <option value="{{ category.slug }}" {% if category_filter == category.slug %}selected{% endif %}>
@@ -37,16 +37,16 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="difficulty">
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm" name="difficulty">
                         <option value="">All Difficulties</option>
                         <option value="EASY" {% if difficulty_filter == 'EASY' %}selected{% endif %}>Easy</option>
                         <option value="MEDIUM" {% if difficulty_filter == 'MEDIUM' %}selected{% endif %}>Medium</option>
                         <option value="HARD" {% if difficulty_filter == 'HARD' %}selected{% endif %}>Hard</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="sort">
+                <div class="col-8 col-md-2">
+                    <select class="form-select form-select-sm" name="sort">
                         <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
                         <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title A-Z</option>
                         <option value="-total_attempts" {% if sort_by == '-total_attempts' %}selected{% endif %}>Most Popular</option>
@@ -54,8 +54,8 @@
                         <option value="difficulty" {% if sort_by == 'difficulty' %}selected{% endif %}>Difficulty</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-4 col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
                         <i class="bi bi-funnel me-1"></i>Filter
                     </button>
                 </div>
