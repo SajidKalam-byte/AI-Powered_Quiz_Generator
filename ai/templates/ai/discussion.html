@@ -41,9 +41,9 @@
                 </button>
                 <small class="text-muted">💡 Ask me about education, sports, or anything you'd like to learn!</small>
             </div>
-            <form id="chat-form" class="d-flex align-items-center gap-2">
+            <form id="chat-form" class="d-flex align-items-center gap-2" onsubmit="return false;">
                 <input type="text" id="message-input" class="form-control message-input flex-grow-1" placeholder="Type your message here..." autocomplete="off">
-                <button type="submit" class="btn btn-primary btn-glow" id="send-button">
+                <button type="button" class="btn btn-primary btn-glow" id="send-button">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
@@ -663,10 +663,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load chat history on page load
     loadChatHistory();
 
+    // Prevent form from submitting normally
     chatForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        e.stopPropagation();
+        return false;
+    });
+
+    // Send button click handler
+    sendButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Send button clicked');
+        handleMessageSend();
+    });
+
+    // Handle message sending
+    function handleMessageSend() {
         const userMessage = messageInput.value.trim();
-        if (!userMessage) return;
+        if (!userMessage) {
+            console.log('Empty message, returning');
+            return;
+        }
+
+        console.log('Sending message:', userMessage);
 
         // Disable input and button
         messageInput.disabled = true;
@@ -688,32 +707,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 message: userMessage
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             removeTypingIndicator();
             
             if (data.success) {
                 appendMessage(data.response, 'ai');
             } else {
-                appendMessage(data.response || 'Sorry, I encountered an error. Please try again.', 'ai');
+                appendMessage(data.error || data.response || 'Sorry, I encountered an error. Please try again.', 'ai');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Fetch error:', error);
             removeTypingIndicator();
             appendMessage('Sorry, I encountered a connection error. Please try again.', 'ai');
         })
         .finally(() => {
+            console.log('Request completed');
             // Re-enable input and button
             messageInput.disabled = false;
             sendButton.disabled = false;
             sendButton.classList.remove('btn-loading');
             messageInput.focus();
         });
-    });
+    }
 
     clearButton.addEventListener('click', function() {
         if (confirm('Are you sure you want to clear the chat history?')) {
+            console.log('Clearing chat history');
             fetch('{% url "ai:clear_chat_history" %}', {
                 method: 'POST',
                 headers: {
@@ -721,8 +749,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': getCookie('csrftoken')
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Clear response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Clear response data:', data);
                 if (data.success) {
                     // Clear chat messages except the initial greeting
                     chatMessages.innerHTML = `
@@ -736,6 +771,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                     `;
+                } else {
+                    console.error('Failed to clear chat history:', data.error);
                 }
             })
             .catch(error => {
@@ -893,8 +930,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enter key to send message (Shift+Enter for new line)
     messageInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            chatForm.dispatchEvent(new Event('submit'));
+            e.preventDefault(); // Prevent form submission
+            handleMessageSend();
         }
     });
 

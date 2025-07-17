@@ -546,12 +546,13 @@ chat_bot = AIChatBot()
 
 @login_required
 @require_http_methods(["POST"])
-@csrf_exempt
 def chat_message(request):
     """Handle chat messages and return AI responses"""
     try:
         data = json.loads(request.body)
         user_message = data.get('message', '').strip()
+        
+        logger.info(f"Chat message received: {user_message[:50]}...")
         
         if not user_message:
             return JsonResponse({
@@ -586,12 +587,15 @@ def chat_message(request):
             # Store in session
             request.session['chat_history'] = chat_history
             
+            logger.info(f"Chat response sent successfully")
+            
             return JsonResponse({
                 'success': True,
                 'response': response['response'],
                 'timestamp': response['timestamp']
             })
         else:
+            logger.error(f"Chat response failed: {response.get('message', 'Unknown error')}")
             return JsonResponse({
                 'success': False,
                 'error': response.get('message', 'Failed to get response'),
@@ -613,11 +617,11 @@ def chat_message(request):
 
 @login_required
 @require_http_methods(["POST"])
-@csrf_exempt
 def clear_chat_history(request):
     """Clear chat history"""
     try:
         request.session['chat_history'] = []
+        logger.info("Chat history cleared successfully")
         return JsonResponse({
             'success': True,
             'message': 'Chat history cleared'
