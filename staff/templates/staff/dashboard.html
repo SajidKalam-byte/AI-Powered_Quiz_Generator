@@ -641,7 +641,7 @@
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <div class="hero-content">
-                    <h1 class="display-4 fw-bold mb-3">Welcome Back, {{ user.get_full_name|default:user.username }}</h1>
+                    <h1 class="display-4 fw-bold mb-3">Welcome, {{ user.get_full_name|default:user.username }}</h1>
                     <p class="lead mb-4 opacity-75">Create engaging AI-powered quizzes, manage your content, and track student progress with our intelligent platform.</p>
                     <div class="d-flex flex-wrap gap-3">
                         <a href="{% url 'textprocessor:upload' %}" class="btn btn-light btn-lg">

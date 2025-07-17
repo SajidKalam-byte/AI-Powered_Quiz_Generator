@@ -1,231 +1,779 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
-
 {% block title %}Admin Dashboard - QuizHub{% endblock %}
 
 {% block extra_css %}
 <style>
-    .admin-metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Enhanced Super Admin Dashboard - Mobile-First */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #10b981, #34d399);
+        --warning-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
+        --danger-gradient: linear-gradient(135deg, #ef4444, #f87171);
+        --info-gradient: linear-gradient(135deg, #06b6d4, #0ea5e9);
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+        --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Enhanced Header */
+    .admin-header {
+        background: var(--primary-gradient);
         color: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
     }
-    
+
+    .admin-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .admin-header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .admin-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .admin-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    .admin-actions {
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-admin {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-admin:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Enhanced Metric Cards */
+    .admin-metric-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        height: 100%;
+    }
+
     .admin-metric-card::before {
         content: '';
         position: absolute;
         top: 0;
+        left: 0;
         right: 0;
-        width: 100px;
-        height: 100px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        transform: translate(30px, -30px);
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
     }
-    
+
+    .admin-metric-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .admin-metric-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .metric-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .metric-icon::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 18px;
+        padding: 2px;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+    }
+
+    .metric-icon.users { background: var(--primary-gradient); }
+    .metric-icon.quizzes { background: var(--info-gradient); }
+    .metric-icon.attempts { background: var(--success-gradient); }
+    .metric-icon.completion { background: var(--warning-gradient); }
+
     .metric-value {
         font-size: 2.5rem;
         font-weight: 700;
+        color: #1f2937;
         margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #333, #666);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    
+
     .metric-label {
+        color: #6b7280;
         font-size: 0.9rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-    }
-    
-    .metric-change {
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-    
-    .metric-change.positive {
-        color: #28a745;
-    }
-    
-    .metric-change.negative {
-        color: #dc3545;
-    }
-    
-    .admin-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .admin-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-    }
-    
-    .admin-card-header {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1rem;
+        font-weight: 500;
         margin-bottom: 1rem;
     }
-    
-    .admin-card-title {
-        margin: 0;
-        color: #333;
+
+    .metric-change {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
         font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        width: fit-content;
     }
-    
+
+    .metric-change.positive {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .metric-change.negative {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    /* Enhanced Admin Cards */
+    .admin-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: var(--transition);
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .admin-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .admin-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .admin-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .admin-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .admin-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .admin-card-title i {
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    /* Enhanced Chart Container */
+    .chart-container {
+        position: relative;
+        height: 350px;
+        margin: 1rem 0;
+        background: rgba(248, 250, 252, 0.5);
+        border-radius: 16px;
+        padding: 1rem;
+    }
+
+    /* Enhanced Quick Actions */
     .quick-action-btn {
         display: block;
         width: 100%;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 16px;
         text-decoration: none;
-        color: #333;
-        transition: all 0.3s ease;
+        color: #374151;
+        transition: var(--transition);
+        background: white;
+        position: relative;
+        overflow: hidden;
     }
-    
+
+    .quick-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .quick-action-btn:hover::before {
+        left: 100%;
+    }
+
     .quick-action-btn:hover {
-        border-color: #4361ee;
-        color: #4361ee;
+        border-color: #667eea;
+        color: #667eea;
         text-decoration: none;
-        background: rgba(67, 97, 238, 0.05);
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
     }
-    
+
     .quick-action-icon {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-    
-    .activity-item {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
         display: flex;
         align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #eee;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        transition: var(--transition);
     }
-    
+
+    .quick-action-btn:hover .quick-action-icon {
+        background: rgba(102, 126, 234, 0.2);
+        transform: scale(1.1);
+    }
+
+    .quick-action-title {
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+
+    .quick-action-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    /* Enhanced Activity Feed */
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        transition: var(--transition);
+        border-radius: 8px;
+        margin: 0 -0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .activity-item:hover {
+        background: rgba(248, 250, 252, 0.8);
+        transform: translateX(5px);
+    }
+
     .activity-item:last-child {
         border-bottom: none;
     }
-    
+
     .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-right: 1rem;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         color: white;
+        position: relative;
+        flex-shrink: 0;
     }
-    
-    .activity-user { background: #28a745; }
-    .activity-quiz { background: #4361ee; }
-    .activity-attempt { background: #ffc107; color: #333 !important; }
-    
+
+    .activity-icon::after {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: 13px;
+        padding: 1px;
+        background: linear-gradient(45deg, rgba(255,255,255,0.3), transparent);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+    }
+
+    .activity-user { background: var(--success-gradient); }
+    .activity-quiz { background: var(--primary-gradient); }
+    .activity-attempt { background: var(--warning-gradient); }
+
+    .activity-content {
+        flex-grow: 1;
+    }
+
+    .activity-text {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    /* Enhanced Recent Items */
     .recent-item {
         display: flex;
-        justify-content: between;
-        align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #eee;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        transition: var(--transition);
+        border-radius: 8px;
+        margin: 0 -0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
-    
+
+    .recent-item:hover {
+        background: rgba(248, 250, 252, 0.8);
+        transform: translateX(5px);
+    }
+
     .recent-item:last-child {
         border-bottom: none;
     }
-    
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 500;
+
+    .recent-item-content {
+        flex-grow: 1;
     }
-    
-    .status-active { background: #d4edda; color: #155724; }
-    .status-inactive { background: #f8d7da; color: #721c24; }
-    .status-published { background: #d1ecf1; color: #0c5460; }
-    .status-unpublished { background: #fff3cd; color: #856404; }
-    
-    .chart-container {
+
+    .recent-item-title {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .recent-item-subtitle {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .recent-item-meta {
+        text-align: right;
+        flex-shrink: 0;
+        margin-left: 1rem;
+    }
+
+    /* Enhanced Status Badges */
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-published {
+        background: rgba(6, 182, 212, 0.1);
+        color: #06b6d4;
+        border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .status-unpublished {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* System Health Cards */
+    .health-metric {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(248, 250, 252, 0.5);
+        border-radius: 16px;
+        transition: var(--transition);
+        margin-bottom: 1rem;
+    }
+
+    .health-metric:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .health-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .health-value.success { color: #10b981; }
+    .health-value.warning { color: #f59e0b; }
+    .health-value.info { color: #06b6d4; }
+
+    .health-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #9ca3af;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Refresh Button Animation */
+    .btn-refresh {
         position: relative;
-        height: 300px;
-        margin: 1rem 0;
+        overflow: hidden;
+    }
+
+    .btn-refresh.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .admin-header {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-title {
+            font-size: 1.5rem;
+        }
+
+        .admin-subtitle {
+            font-size: 1rem;
+        }
+
+        .admin-actions {
+            margin-top: 1rem;
+        }
+
+        .btn-admin {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+        }
+
+        .admin-metric-card {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+        }
+
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+
+        .admin-card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-card-title {
+            font-size: 1.1rem;
+        }
+
+        .chart-container {
+            height: 250px;
+        }
+
+        .quick-action-btn {
+            padding: 1.25rem;
+        }
+
+        .quick-action-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+        }
+
+        .activity-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .recent-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .recent-item-meta {
+            text-align: left;
+            margin-left: 0;
+        }
+
+        .health-metric {
+            padding: 1rem;
+        }
+
+        .health-value {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .admin-header {
+            padding: 1rem;
+        }
+
+        .admin-title {
+            font-size: 1.25rem;
+        }
+
+        .admin-metric-card {
+            padding: 1rem;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+        }
+
+        .admin-card {
+            padding: 1rem;
+        }
+
+        .chart-container {
+            height: 200px;
+            padding: 0.5rem;
+        }
+
+        .quick-action-btn {
+            padding: 1rem;
+        }
+    }
+
+    /* Loading Animation */
+    .admin-metric-card, .admin-card {
+        animation: slideInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    .admin-metric-card:nth-child(1) { animation-delay: 0.1s; }
+    .admin-metric-card:nth-child(2) { animation-delay: 0.2s; }
+    .admin-metric-card:nth-child(3) { animation-delay: 0.3s; }
+    .admin-metric-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .admin-card:nth-child(1) { animation-delay: 0.5s; }
+    .admin-card:nth-child(2) { animation-delay: 0.6s; }
+    .admin-card:nth-child(3) { animation-delay: 0.7s; }
+
+    @keyframes slideInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">
-                        <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
+<div class="container-fluid px-2 px-md-4 py-3 py-md-5">
+    <!-- Enhanced Header -->
+    <div class="admin-header">
+        <div class="admin-header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="admin-title">
+                        <i class="bi bi-speedometer2 me-2"></i>Super Admin Dashboard
                     </h1>
-                    <p class="text-muted mb-0">Platform overview and management</p>
+                    <p class="admin-subtitle">Complete platform overview and management control</p>
                 </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="refreshDashboard()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                    </button>
-                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_users' %}">Manage Users</a></li>
-                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_quizzes' %}">Manage Quizzes</a></li>
-                        <li><a class="dropdown-item" href="{% url 'admin_dashboard:system_settings' %}">Settings</a></li>
-                    </ul>
+                <div class="col-md-4">
+                    <div class="admin-actions text-md-end">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-admin btn-refresh" onclick="refreshDashboard()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                            </button>
+                            <button type="button" class="btn btn-admin dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_users' %}">
+                                    <i class="bi bi-people me-2"></i>Manage Users
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard:manage_quizzes' %}">
+                                    <i class="bi bi-journal-bookmark me-2"></i>Manage Quizzes
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard:system_settings' %}">
+                                    <i class="bi bi-gear me-2"></i>System Settings
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'quizzes:analytics_dashboard' %}">
+                                    <i class="bi bi-graph-up me-2"></i>Analytics
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Key Metrics Row -->
+    <!-- Enhanced Key Metrics Row -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="admin-metric-card">
+                <div class="metric-icon users">
+                    <i class="bi bi-people-fill"></i>
+                </div>
                 <div class="metric-value">{{ total_users|default:0 }}</div>
                 <div class="metric-label">Total Users</div>
                 <div class="metric-change positive">
-                    <i class="bi bi-arrow-up"></i> +12% this week
+                    <i class="bi bi-arrow-up"></i>
+                    +12% this week
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="admin-metric-card">
+                <div class="metric-icon quizzes">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
                 <div class="metric-value">{{ total_quizzes|default:0 }}</div>
                 <div class="metric-label">Total Quizzes</div>
                 <div class="metric-change positive">
-                    <i class="bi bi-arrow-up"></i> +8% this week
+                    <i class="bi bi-arrow-up"></i>
+                    +8% this week
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="admin-metric-card">
+                <div class="metric-icon attempts">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
                 <div class="metric-value">{{ total_attempts|default:0 }}</div>
                 <div class="metric-label">Quiz Attempts</div>
                 <div class="metric-change positive">
-                    <i class="bi bi-arrow-up"></i> +15% this week
+                    <i class="bi bi-arrow-up"></i>
+                    +15% this week
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="admin-metric-card">
+                <div class="metric-icon completion">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
                 <div class="metric-value">{{ completion_rate|floatformat:1|default:"0.0" }}%</div>
                 <div class="metric-label">Completion Rate</div>
                 <div class="metric-change positive">
-                    <i class="bi bi-arrow-up"></i> +3% this week
+                    <i class="bi bi-arrow-up"></i>
+                    +3% this week
                 </div>
             </div>
         </div>
@@ -234,24 +782,22 @@
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Platform Engagement Chart -->
+            <!-- Enhanced Platform Engagement Chart -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-graph-up me-2"></i>Platform Engagement
-                    </h5>
+                    <i class="bi bi-graph-up"></i>
+                    <h5 class="admin-card-title">Platform Engagement</h5>
                 </div>
                 <div class="chart-container">
                     <canvas id="engagementChart"></canvas>
                 </div>
             </div>
 
-            <!-- Recent Activity -->
+            <!-- Enhanced Recent Activity -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-clock me-2"></i>Recent Activity
-                    </h5>
+                    <i class="bi bi-clock-history"></i>
+                    <h5 class="admin-card-title">Recent Activity</h5>
                 </div>
                 <div class="activity-feed">
                     {% for activity in recent_activity %}
@@ -261,128 +807,140 @@
                             </div>
                             <div class="activity-content">
                                 <div class="activity-text">{{ activity.description }}</div>
-                                <div class="activity-time text-muted">{{ activity.timestamp|timesince }} ago</div>
+                                <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center text-muted py-3">
-                            <i class="bi bi-inbox display-4 d-block mb-2"></i>
-                            No recent activity
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <div>No recent activity</div>
                         </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- System Health -->
+            <!-- Enhanced System Health -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-heart-pulse me-2"></i>System Health
-                    </h5>
+                    <i class="bi bi-heart-pulse"></i>
+                    <h5 class="admin-card-title">System Health</h5>
                 </div>
                 <div class="row">
-                    <div class="col-md-4 text-center">
-                        <div class="h4 text-success">{{ ai_usage_today }}</div>
-                        <small class="text-muted">AI Requests Today</small>
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="health-value success">{{ ai_usage_today|default:0 }}</div>
+                            <div class="health-label">AI Requests Today</div>
+                        </div>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <div class="h4 text-warning">{{ inactive_users }}</div>
-                        <small class="text-muted">Inactive Users (30d)</small>
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="health-value warning">{{ inactive_users|default:0 }}</div>
+                            <div class="health-label">Inactive Users (30d)</div>
+                        </div>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <div class="h4 text-info">99.8%</div>
-                        <small class="text-muted">System Uptime</small>
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="health-value info">99.8%</div>
+                            <div class="health-label">System Uptime</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Enhanced Sidebar -->
         <div class="col-lg-4">
-            <!-- Quick Actions -->
+            <!-- Enhanced Quick Actions -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-lightning me-2"></i>Quick Actions
-                    </h5>
+                    <i class="bi bi-lightning-charge"></i>
+                    <h5 class="admin-card-title">Quick Actions</h5>
                 </div>
                 <div class="quick-actions">
                     <a href="{% url 'admin_dashboard:manage_users' %}" class="quick-action-btn">
-                        <i class="bi bi-people quick-action-icon"></i>
-                        <strong>Manage Users</strong>
-                        <br><small class="text-muted">View and manage user accounts</small>
+                        <div class="quick-action-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="quick-action-title">Manage Users</div>
+                        <div class="quick-action-desc">View and manage user accounts</div>
                     </a>
                     <a href="{% url 'admin_dashboard:manage_quizzes' %}" class="quick-action-btn">
-                        <i class="bi bi-journal-bookmark quick-action-icon"></i>
-                        <strong>Manage Quizzes</strong>
-                        <br><small class="text-muted">Review and moderate quizzes</small>
+                        <div class="quick-action-icon">
+                            <i class="bi bi-journal-bookmark"></i>
+                        </div>
+                        <div class="quick-action-title">Manage Quizzes</div>
+                        <div class="quick-action-desc">Review and moderate quizzes</div>
                     </a>
                     <a href="{% url 'admin_dashboard:manage_ai_prompts' %}" class="quick-action-btn">
-                        <i class="bi bi-robot quick-action-icon"></i>
-                        <strong>AI Prompts</strong>
-                        <br><small class="text-muted">Configure AI prompt templates</small>
+                        <div class="quick-action-icon">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="quick-action-title">AI Prompts</div>
+                        <div class="quick-action-desc">Configure AI prompt templates</div>
                     </a>
                     <a href="{% url 'admin_dashboard:system_settings' %}" class="quick-action-btn">
-                        <i class="bi bi-gear quick-action-icon"></i>
-                        <strong>System Settings</strong>
-                        <br><small class="text-muted">Configure platform settings</small>
+                        <div class="quick-action-icon">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <div class="quick-action-title">System Settings</div>
+                        <div class="quick-action-desc">Configure platform settings</div>
                     </a>
                 </div>
             </div>
 
-            <!-- Recent Users -->
+            <!-- Enhanced Recent Users -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-person-plus me-2"></i>Recent Users
-                    </h5>
+                    <i class="bi bi-person-plus"></i>
+                    <h5 class="admin-card-title">Recent Users</h5>
                 </div>
                 <div class="recent-items">
                     {% for user in recent_users %}
                         <div class="recent-item">
-                            <div>
-                                <strong>{{ user.get_full_name|default:user.username }}</strong>
-                                <br><small class="text-muted">{{ user.email }}</small>
+                            <div class="recent-item-content">
+                                <div class="recent-item-title">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="recent-item-subtitle">{{ user.email }}</div>
                             </div>
-                            <div class="text-end">
-                                <span class="status-badge status-{{ user.is_active|yesno:'active,inactive' }}">
+                            <div class="recent-item-meta">
+                                <div class="status-badge status-{{ user.is_active|yesno:'active,inactive' }}">
                                     {{ user.role|title }}
-                                </span>
-                                <br><small class="text-muted">{{ user.date_joined|timesince }} ago</small>
+                                </div>
+                                <div class="recent-item-subtitle">{{ user.date_joined|timesince }} ago</div>
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center text-muted py-3">
-                            No recent users
+                        <div class="empty-state">
+                            <i class="bi bi-person-x"></i>
+                            <div>No recent users</div>
                         </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Recent Quizzes -->
+            <!-- Enhanced Recent Quizzes -->
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h5 class="admin-card-title">
-                        <i class="bi bi-plus-circle me-2"></i>Recent Quizzes
-                    </h5>
+                    <i class="bi bi-plus-circle"></i>
+                    <h5 class="admin-card-title">Recent Quizzes</h5>
                 </div>
                 <div class="recent-items">
                     {% for quiz in recent_quizzes %}
                         <div class="recent-item">
-                            <div>
-                                <strong>{{ quiz.title|truncatechars:25 }}</strong>
-                                <br><small class="text-muted">by {{ quiz.created_by.get_full_name|default:quiz.created_by.username }}</small>
+                            <div class="recent-item-content">
+                                <div class="recent-item-title">{{ quiz.title|truncatechars:30 }}</div>
+                                <div class="recent-item-subtitle">by {{ quiz.created_by.get_full_name|default:quiz.created_by.username }}</div>
                             </div>
-                            <div class="text-end">
-                                <span class="status-badge status-{{ quiz.is_published|yesno:'published,unpublished' }}">
+                            <div class="recent-item-meta">
+                                <div class="status-badge status-{{ quiz.is_published|yesno:'published,unpublished' }}">
                                     {{ quiz.is_published|yesno:'Published,Draft' }}
-                                </span>
-                                <br><small class="text-muted">{{ quiz.created_at|timesince }} ago</small>
+                                </div>
+                                <div class="recent-item-subtitle">{{ quiz.created_at|timesince }} ago</div>
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center text-muted py-3">
-                            No recent quizzes
+                        <div class="empty-state">
+                            <i class="bi bi-journal-x"></i>
+                            <div>No recent quizzes</div>
                         </div>
                     {% endfor %}
                 </div>
@@ -395,28 +953,59 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
-    // Platform Engagement Chart
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate cards on load
+    const animatedElements = document.querySelectorAll('.admin-metric-card, .admin-card');
+    animatedElements.forEach((element, index) => {
+        setTimeout(() => {
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, (index + 1) * 100);
+    });
+
+    // Enhanced Platform Engagement Chart
     const engagementCtx = document.getElementById('engagementChart').getContext('2d');
     
-    // Sample data - replace with actual data from your analytics
     const engagementChart = new Chart(engagementCtx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
             datasets: [{
                 label: 'Active Users',
-                data: [120, 135, 150, 180, 200, 220],
-                borderColor: '#4361ee',
-                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                data: [120, 135, 150, 180, 200, 220, 250],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
             }, {
                 label: 'Quiz Attempts',
-                data: [300, 350, 420, 480, 550, 600],
-                borderColor: '#4bb543',
-                backgroundColor: 'rgba(75, 181, 67, 0.1)',
+                data: [300, 350, 420, 480, 550, 600, 680],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }, {
+                label: 'AI Generations',
+                data: [80, 95, 110, 140, 165, 190, 220],
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
             }]
         },
         options: {
@@ -425,27 +1014,192 @@
             plugins: {
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#667eea',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    intersect: false,
+                    mode: 'index'
                 }
             },
             scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        color: '#6b7280'
+                    }
+                },
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        color: '#6b7280'
+                    }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
 
-    // Utility functions
+    // Enhanced refresh functionality
     function refreshDashboard() {
-        window.location.reload();
+        const refreshBtn = document.querySelector('.btn-refresh');
+        const refreshIcon = refreshBtn.querySelector('i');
+        
+        refreshBtn.classList.add('loading');
+        refreshBtn.disabled = true;
+        
+        // Simulate loading
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     }
+
+    // Make refresh function global
+    window.refreshDashboard = refreshDashboard;
+
+    // Add loading states to quick action buttons
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const originalContent = this.innerHTML;
+            this.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split"></i><br>Loading...</div>';
+            this.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                this.innerHTML = originalContent;
+                this.style.pointerEvents = 'auto';
+            }, 3000);
+        });
+    });
+
+    // Animate metric values on scroll
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const numberElement = entry.target;
+                const finalNumber = parseInt(numberElement.textContent);
+                if (!isNaN(finalNumber)) {
+                    animateNumber(numberElement, 0, finalNumber, 1500);
+                    observer.unobserve(numberElement);
+                }
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.metric-value, .health-value').forEach(el => {
+        observer.observe(el);
+    });
+
+    function animateNumber(element, start, end, duration) {
+        const startTime = performance.now();
+        const isPercentage = element.textContent.includes('%');
+        
+        function updateNumber(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(start + (end - start) * progress);
+            
+            element.textContent = current + (isPercentage ? '%' : '');
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateNumber);
+            }
+        }
+        
+        requestAnimationFrame(updateNumber);
+    }
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.quick-action-btn, .btn-admin').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(102, 126, 234, 0.3);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                left: ${x}px;
+                top: ${y}px;
+                width: 20px;
+                height: 20px;
+                margin-left: -10px;
+                margin-top: -10px;
+                pointer-events: none;
+            `;
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Auto-refresh every 5 minutes
     setInterval(function() {
         refreshDashboard();
     }, 300000);
 
-    // Real-time updates using WebSocket (optional)
-    // You can implement WebSocket connections for real-time dashboard updates
+    // Real-time clock
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        const clockElement = document.querySelector('.admin-clock');
+        if (clockElement) {
+            clockElement.textContent = timeString;
+        }
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+});
 </script>
 {% endblock %}

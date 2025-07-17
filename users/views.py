@@ -12,6 +12,7 @@ from django.conf import settings
 from .models import CustomUser
 from .decorators import role_required
 from quizzes.models import Quiz, UserQuizAttempt
+from django.http import JsonResponse
 
 
 def _redirect_authenticated_user(request, user, next_url=''):
@@ -147,27 +148,37 @@ def user_login(request):
         password = request.POST.get('password', '').strip()
 
         if not all([username, password]):
-            messages.error(request, "Username and password are required.")
+            message = "Username and password are required."
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': message})
+            messages.error(request, message)
             return redirect('users:login')
 
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
             request.session.set_expiry(3600)  # 1 hour
-            messages.success(request, f"Welcome back, {user.full_name or user.username}!")
+            message = f"Welcome back, {user.full_name or user.username}!"
+            redirect_url = _redirect_authenticated_user(request, user, '').url
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': message, 'redirect_url': redirect_url})
+            messages.success(request, message)
             return _redirect_authenticated_user(request, user, '')
-        messages.error(request, "Invalid username or password.")
+        
+        message = "Invalid username or password."
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': message})
+        messages.error(request, message)
         return redirect('users:login')
 
     # Render login template
     return render(request, 'users/login.html')
 
-
 def user_logout(request):
+    from django.contrib.auth import logout
     logout(request)
     messages.success(request, "You have been logged out.")
     return redirect('core:home')
-
 
 def dashboard(request):
     """

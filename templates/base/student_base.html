@@ -334,6 +334,7 @@
                         <a href="{% url 'quizzes:teacher_quizzes' %}" class="nav-link">
                             <i class="bi bi-card-list"></i>
                             <span>My Quizzes</span>
+                            <span class="badge bg-success ms-2">New</span>
                         </a>
                     </li>
                     {% endif %}
@@ -376,22 +377,26 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-award"></i>
-                        <span>Quiz Tournament</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="{% url 'quizzes:leaderboard' %}" class="nav-link">
                         <i class="bi bi-star"></i>
                         <span>Leaderboard</span>
+                        <span class="badge bg-success ms-2">New</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-award"></i>
+                        <span>Quiz Tournament</span>
+                        <span class="badge bg-secondary ms-2">Coming Soon</span>
+                    </a>
+                </li>
+                
                 
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="bi bi-chat-square-text"></i>
                         <span>Quiz Discussions</span>
+
                     </a>
                 </li>
                 
@@ -399,12 +404,14 @@
                     <a href="#" class="nav-link">
                         <i class="bi bi-currency-dollar"></i>
                         <span>Pricing Plan</span>
+                        <span class="badge bg-secondary ms-2">Coming Soon</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="bi bi-life-preserver"></i>
                         <span>Support</span>
+                        <span class="badge bg-secondary ms-2">Coming Soon</span>
                     </a>
                 </li>
             </ul>
