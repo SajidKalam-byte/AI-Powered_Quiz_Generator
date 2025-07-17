@@ -17,6 +17,12 @@ from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
+def get_dashboard_template(user):
+    """Returns the correct base dashboard layout template based on user role."""
+    # Use the same modern template for all users to ensure consistent UI
+    return 'base/student_base.html'
+
+
 @dataclass
 class QuizQuestion:
     """Structured quiz question data"""
@@ -38,6 +44,115 @@ class QuizGenerationRequest:
     content: Optional[str] = None
     category: Optional[str] = None
     language: str = "en"
+
+class AIChatBot:
+    """AI Chat Bot for educational and sports questions"""
+    
+    def __init__(self):
+        self.gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
+        
+    def get_chat_response(self, user_message: str, chat_history: List[Dict] = None) -> Dict[str, Any]:
+        """Get AI response for chat message"""
+        try:
+            if not self.gemini_api_key:
+                return {
+                    'success': False,
+                    'message': 'AI service is not configured. Please check API key settings.',
+                    'response': 'Sorry, I cannot respond right now. Please try again later.'
+                }
+            
+            # Build conversation context
+            context = self._build_chat_context(user_message, chat_history)
+            
+            response = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+                headers={
+                    'Content-Type': 'application/json',
+                    'X-goog-api-key': self.gemini_api_key
+                },
+                json={
+                    "contents": [{"parts": [{"text": context}]}],
+                    "generationConfig": {
+                        "temperature": 0.8,
+                        "topK": 40,
+                        "topP": 0.95,
+                        "maxOutputTokens": 1024,
+                    }
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'candidates' in result and len(result['candidates']) > 0:
+                    ai_response = result['candidates'][0]['content']['parts'][0]['text']
+                    return {
+                        'success': True,
+                        'response': ai_response.strip(),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'response': 'Sorry, I could not generate a response. Please try again.'
+                    }
+            else:
+                logger.error(f"Gemini API error: {response.status_code} - {response.text}")
+                return {
+                    'success': False,
+                    'response': 'Sorry, I am experiencing technical difficulties. Please try again later.'
+                }
+                
+        except requests.exceptions.Timeout:
+            return {
+                'success': False,
+                'response': 'Request timed out. Please try again.'
+            }
+        except Exception as e:
+            logger.error(f"Chat error: {str(e)}")
+            return {
+                'success': False,
+                'response': 'Sorry, something went wrong. Please try again.'
+            }
+    
+    def _build_chat_context(self, user_message: str, chat_history: List[Dict] = None) -> str:
+        """Build context for chat conversation"""
+        
+        # System instructions
+        system_prompt = """You are an AI assistant specialized in education and sports. Your role is to:
+
+1. Answer questions about educational topics (math, science, history, literature, etc.)
+2. Provide information about sports, athletes, rules, and sporting events
+3. Give study tips and learning strategies
+4. Explain complex concepts in simple terms
+5. Provide motivational support for learning
+
+Guidelines:
+- Keep responses concise but informative
+- Use simple, clear language
+- Provide both short and detailed answers when appropriate
+- Be encouraging and supportive
+- If asked about topics outside education/sports, politely redirect to your specialty areas
+- For educational content, provide examples when helpful
+- For sports content, include relevant facts and context
+
+Response format:
+- For quick questions: Give a brief, direct answer
+- For complex topics: Provide a structured explanation
+- Always be friendly and encouraging"""
+
+        # Add conversation history if available
+        conversation_context = ""
+        if chat_history:
+            conversation_context = "\n\nConversation History:\n"
+            for msg in chat_history[-5:]:  # Last 5 messages for context
+                role = "User" if msg.get('sender') == 'user' else "Assistant"
+                conversation_context += f"{role}: {msg.get('message', '')}\n"
+        
+        # Current user message
+        current_context = f"{conversation_context}\n\nCurrent User Question: {user_message}\n\nResponse:"
+        
+        return system_prompt + current_context
 
 class AIQuizGenerator:
     """Enhanced AI Quiz Generator with multiple providers and fallbacks"""
@@ -409,3 +524,125 @@ def generate_quiz(request):
             return JsonResponse({'error': 'Failed to generate quiz question'}, status=500)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def discussion(request):
+    """Discussion page for AI features"""
+    context = {
+        'message': 'AI Discussion Page',
+        'features': [
+            'Multi-provider support (Gemini, OpenAI)',
+            'Fallback to rule-based generation',
+            'Enhanced question quality standards',
+            'Cognitive level analysis'
+        ],
+        'dashboard_template': get_dashboard_template(request.user) if request.user.is_authenticated else 'base/auth_base.html'
+    }
+    return render(request, 'ai/discussion.html', context)
+
+
+# Initialize chat bot
+chat_bot = AIChatBot()
+
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def chat_message(request):
+    """Handle chat messages and return AI responses"""
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '').strip()
+        
+        if not user_message:
+            return JsonResponse({
+                'success': False,
+                'error': 'Message cannot be empty'
+            }, status=400)
+        
+        # Get chat history from session if available
+        chat_history = request.session.get('chat_history', [])
+        
+        # Get AI response
+        response = chat_bot.get_chat_response(user_message, chat_history)
+        
+        if response['success']:
+            # Add to chat history
+            chat_history.append({
+                'sender': 'user',
+                'message': user_message,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            chat_history.append({
+                'sender': 'ai',
+                'message': response['response'],
+                'timestamp': response['timestamp']
+            })
+            
+            # Keep only last 20 messages in history
+            if len(chat_history) > 20:
+                chat_history = chat_history[-20:]
+            
+            # Store in session
+            request.session['chat_history'] = chat_history
+            
+            return JsonResponse({
+                'success': True,
+                'response': response['response'],
+                'timestamp': response['timestamp']
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': response.get('message', 'Failed to get response'),
+                'response': response['response']
+            }, status=500)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Chat message error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def clear_chat_history(request):
+    """Clear chat history"""
+    try:
+        request.session['chat_history'] = []
+        return JsonResponse({
+            'success': True,
+            'message': 'Chat history cleared'
+        })
+    except Exception as e:
+        logger.error(f"Clear chat history error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Failed to clear chat history'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_chat_history(request):
+    """Get chat history"""
+    try:
+        chat_history = request.session.get('chat_history', [])
+        return JsonResponse({
+            'success': True,
+            'history': chat_history
+        })
+    except Exception as e:
+        logger.error(f"Get chat history error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Failed to get chat history'
+        }, status=500)
