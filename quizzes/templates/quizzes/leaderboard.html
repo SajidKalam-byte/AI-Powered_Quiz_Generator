@@ -1,273 +1,1014 @@
 {% extends dashboard_template %}
 
+{% block extra_css %}
+<style>
+    /* Enhanced Leaderboard Page - Mobile-First */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #10b981, #34d399);
+        --warning-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
+        --danger-gradient: linear-gradient(135deg, #ef4444, #f87171);
+        --info-gradient: linear-gradient(135deg, #06b6d4, #0ea5e9);
+        --gold-gradient: linear-gradient(135deg, #fbbf24, #f59e0b);
+        --silver-gradient: linear-gradient(135deg, #9ca3af, #6b7280);
+        --bronze-gradient: linear-gradient(135deg, #d97706, #92400e);
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+        --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Enhanced Header */
+    .leaderboard-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .leaderboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .leaderboard-header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .leaderboard-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .leaderboard-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    /* Period Selector */
+    .period-selector {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .period-buttons {
+        background: white;
+        border-radius: 50px;
+        padding: 0.5rem;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .period-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .period-btn:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .period-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Podium Section */
+    .podium-section {
+        margin-bottom: 3rem;
+    }
+
+    .podium-container {
+        display: flex;
+        justify-content: center;
+        align-items: end;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .podium-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        text-align: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        min-width: 200px;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .podium-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .podium-card.first-place {
+        order: 2;
+        transform: scale(1.05);
+        border: 3px solid #fbbf24;
+    }
+
+    .podium-card.second-place {
+        order: 1;
+    }
+
+    .podium-card.third-place {
+        order: 3;
+    }
+
+    .podium-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .podium-card.first-place::before {
+        background: var(--gold-gradient);
+    }
+
+    .podium-card.second-place::before {
+        background: var(--silver-gradient);
+    }
+
+    .podium-card.third-place::before {
+        background: var(--bronze-gradient);
+    }
+
+    .podium-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .trophy-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        animation: bounce 2s infinite;
+    }
+
+    .trophy-icon.gold {
+        color: #fbbf24;
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+    }
+
+    .trophy-icon.silver {
+        color: #9ca3af;
+        text-shadow: 0 0 20px rgba(156, 163, 175, 0.5);
+    }
+
+    .trophy-icon.bronze {
+        color: #d97706;
+        text-shadow: 0 0 20px rgba(217, 119, 6, 0.5);
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .podium-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .podium-badge.gold {
+        background: var(--gold-gradient);
+        color: white;
+    }
+
+    .podium-badge.silver {
+        background: var(--silver-gradient);
+        color: white;
+    }
+
+    .podium-badge.bronze {
+        background: var(--bronze-gradient);
+        color: white;
+    }
+
+    .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 auto 1rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: var(--transition);
+    }
+
+    .user-avatar-large:hover {
+        transform: scale(1.1);
+    }
+
+    .podium-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .podium-points {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .podium-stats {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    /* Leaderboard Table */
+    .leaderboard-table-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .leaderboard-table {
+        margin-bottom: 0;
+    }
+
+    .leaderboard-table thead th {
+        background: var(--primary-gradient);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .leaderboard-table tbody tr {
+        transition: var(--transition);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .leaderboard-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateX(5px);
+    }
+
+    .leaderboard-table tbody tr.current-user {
+        background: rgba(102, 126, 234, 0.1);
+        border-left: 4px solid #667eea;
+    }
+
+    .leaderboard-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 35px;
+        font-weight: 700;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .rank-badge.top-3 {
+        font-size: 1.2rem;
+    }
+
+    .rank-badge.rank-1 {
+        background: var(--gold-gradient);
+        color: white;
+    }
+
+    .rank-badge.rank-2 {
+        background: var(--silver-gradient);
+        color: white;
+    }
+
+    .rank-badge.rank-3 {
+        background: var(--bronze-gradient);
+        color: white;
+    }
+
+    .rank-badge.other {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .user-avatar:hover {
+        transform: scale(1.1);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .user-label {
+        font-size: 0.8rem;
+        color: #667eea;
+        font-weight: 500;
+    }
+
+    .points-badge {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .performance-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .performance-badge.top {
+        background: var(--warning-gradient);
+        color: white;
+    }
+
+    .performance-badge.excellent {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .performance-badge.active {
+        background: var(--info-gradient);
+        color: white;
+    }
+
+    /* Period Info */
+    .period-info {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 12px;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    /* User Stats Section */
+    .user-stats-section {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .user-stats-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-stats-title i {
+        color: #667eea;
+    }
+
+    .user-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .user-stat-card {
+        padding: 1rem;
+        background: rgba(248, 250, 252, 0.5);
+        border-radius: 12px;
+        transition: var(--transition);
+    }
+
+    .user-stat-card:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .user-stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .user-stat-number.text-primary { color: #667eea !important; }
+    .user-stat-number.text-success { color: #10b981 !important; }
+    .user-stat-number.text-warning { color: #f59e0b !important; }
+    .user-stat-number.text-info { color: #06b6d4 !important; }
+
+    .user-stat-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .empty-state::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .empty-state-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1.5rem;
+        transition: var(--transition);
+    }
+
+    .empty-state:hover .empty-icon {
+        transform: scale(1.1);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .leaderboard-header {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .leaderboard-title {
+            font-size: 1.5rem;
+        }
+
+        .leaderboard-subtitle {
+            font-size: 1rem;
+        }
+
+        .period-buttons {
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .period-btn {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .podium-container {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .podium-card {
+            min-width: auto;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 1rem;
+        }
+
+        .podium-card.first-place {
+            order: 1;
+            transform: none;
+        }
+
+        .podium-card.second-place {
+            order: 2;
+        }
+
+        .podium-card.third-place {
+            order: 3;
+        }
+
+        .leaderboard-table-container {
+            overflow-x: auto;
+        }
+
+        .leaderboard-table {
+            min-width: 600px;
+        }
+
+        .leaderboard-table thead th {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard-table td {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            font-size: 0.8rem;
+        }
+
+        .user-stats-section {
+            padding: 1.5rem;
+        }
+
+        .user-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .leaderboard-header {
+            padding: 1rem;
+        }
+
+        .leaderboard-title {
+            font-size: 1.25rem;
+        }
+
+        .podium-card {
+            padding: 1.5rem;
+        }
+
+        .trophy-icon {
+            font-size: 2.5rem;
+        }
+
+        .user-avatar-large {
+            width: 60px;
+            height: 60px;
+            font-size: 1.25rem;
+        }
+
+        .user-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-stats-section {
+            padding: 1rem;
+        }
+    }
+
+    /* Loading Animation */
+    .podium-card, .leaderboard-table-container {
+        animation: slideInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    .podium-card:nth-child(1) { animation-delay: 0.1s; }
+    .podium-card:nth-child(2) { animation-delay: 0.2s; }
+    .podium-card:nth-child(3) { animation-delay: 0.3s; }
+    .leaderboard-table-container { animation-delay: 0.4s; }
+
+    @keyframes slideInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid px-4 py-5">
-    <!-- Header Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="glass-morphism p-4 rounded-4 text-center">
-                <h1 class="display-4 fw-bold gradient-text mb-3">
-                    <i class="bi bi-trophy-fill me-3"></i>Leaderboard
-                </h1>
-                <p class="lead text-muted">Compete with fellow quiz enthusiasts and climb to the top!</p>
-            </div>
+<div class="container-fluid px-2 px-md-4 py-3 py-md-5">
+    <!-- Enhanced Header -->
+    <div class="leaderboard-header">
+        <div class="leaderboard-header-content">
+            <h1 class="leaderboard-title">
+                <i class="bi bi-trophy-fill me-2"></i>Leaderboard
+            </h1>
+            <p class="leaderboard-subtitle">Compete with fellow quiz enthusiasts and climb to the top!</p>
         </div>
     </div>
 
-    <!-- Period Selector -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-center">
-                <div class="btn-group" role="group" aria-label="Leaderboard periods">
-                    <a href="?period=DAILY" class="btn {% if current_period == 'DAILY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-calendar-day me-1"></i>Daily
-                    </a>
-                    <a href="?period=WEEKLY" class="btn {% if current_period == 'WEEKLY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-calendar-week me-1"></i>Weekly
-                    </a>
-                    <a href="?period=MONTHLY" class="btn {% if current_period == 'MONTHLY' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-calendar-month me-1"></i>Monthly
-                    </a>
-                    <a href="?period=ALL_TIME" class="btn {% if current_period == 'ALL_TIME' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                        <i class="bi bi-infinity me-1"></i>All Time
-                    </a>
-                </div>
-            </div>
+    <!-- Enhanced Period Selector -->
+    <div class="period-selector">
+        <div class="period-buttons">
+            <a href="?period=DAILY" class="period-btn {% if current_period == 'DAILY' %}active{% endif %}">
+                <i class="bi bi-calendar-day"></i>
+                Daily
+            </a>
+            <a href="?period=WEEKLY" class="period-btn {% if current_period == 'WEEKLY' %}active{% endif %}">
+                <i class="bi bi-calendar-week"></i>
+                Weekly
+            </a>
+            <a href="?period=MONTHLY" class="period-btn {% if current_period == 'MONTHLY' %}active{% endif %}">
+                <i class="bi bi-calendar-month"></i>
+                Monthly
+            </a>
+            <a href="?period=ALL_TIME" class="period-btn {% if current_period == 'ALL_TIME' %}active{% endif %}">
+                <i class="bi bi-infinity"></i>
+                All Time
+            </a>
         </div>
     </div>
 
-    <!-- Leaderboard Content -->
-    <div class="row">
-        <div class="col-12">
-            {% if leaderboard and leaderboard.top_users %}
-                <!-- Top 3 Podium -->
-                <div class="row mb-5">
-                    {% for user in leaderboard.top_users|slice:":3" %}
-                        <div class="col-md-4 {% if user.rank == 1 %}order-md-2{% elif user.rank == 2 %}order-md-1{% else %}order-md-3{% endif %}">
-                            <div class="podium-card glass-morphism p-4 rounded-4 text-center mb-4">
-                                {% if user.rank == 1 %}
-                                    <div class="trophy-icon text-warning mb-3">
-                                        <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
-                                    </div>
-                                    <div class="badge bg-warning text-dark mb-2">🥇 Champion</div>
-                                {% elif user.rank == 2 %}
-                                    <div class="trophy-icon text-secondary mb-3">
-                                        <i class="bi bi-award-fill" style="font-size: 2.5rem;"></i>
-                                    </div>
-                                    <div class="badge bg-secondary mb-2">🥈 Runner-up</div>
-                                {% else %}
-                                    <div class="trophy-icon text-warning mb-3">
-                                        <i class="bi bi-award" style="font-size: 2rem;"></i>
-                                    </div>
-                                    <div class="badge bg-warning text-dark mb-2">🥉 Third Place</div>
-                                {% endif %}
-                                
-                                <div class="user-avatar-large mx-auto mb-3">
-                                    {{ user.full_name|slice:":2"|upper }}
-                                </div>
-                                
-                                <h5 class="fw-bold">{{ user.full_name }}</h5>
-                                <p class="text-primary fw-bold mb-2">{{ user.points }} points</p>
-                                <small class="text-muted">{{ user.quizzes_completed }} quizzes completed</small>
-                            </div>
+    {% if leaderboard and leaderboard.top_users %}
+        <!-- Enhanced Podium Section -->
+        <div class="podium-section">
+            <div class="podium-container">
+                {% for user in leaderboard.top_users|slice:":3" %}
+                    <div class="podium-card {% if user.rank == 1 %}first-place{% elif user.rank == 2 %}second-place{% else %}third-place{% endif %}">
+                        <div class="trophy-icon {% if user.rank == 1 %}gold{% elif user.rank == 2 %}silver{% else %}bronze{% endif %}">
+                            {% if user.rank == 1 %}
+                                <i class="bi bi-trophy-fill"></i>
+                            {% elif user.rank == 2 %}
+                                <i class="bi bi-award-fill"></i>
+                            {% else %}
+                                <i class="bi bi-award"></i>
+                            {% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Full Rankings Table -->
-                <div class="card-glass rounded-4 overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th scope="col" class="ps-4">Rank</th>
-                                    <th scope="col">Player</th>
-                                    <th scope="col">Points</th>
-                                    <th scope="col">Quizzes</th>
-                                    <th scope="col">Avg Score</th>
-                                    <th scope="col">Badge</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in leaderboard.top_users %}
-                                <tr class="{% if user.user_id == request.user.id %}table-primary{% endif %}">
-                                    <td class="ps-4">
-                                        <span class="rank-badge rank-{{ user.rank }}">
-                                            {% if user.rank <= 3 %}
-                                                {% if user.rank == 1 %}🥇{% elif user.rank == 2 %}🥈{% else %}🥉{% endif %}
-                                            {% else %}
-                                                #{{ user.rank }}
-                                            {% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="user-avatar me-3">
-                                                {{ user.full_name|slice:":2"|upper }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-semibold">{{ user.full_name }}</div>
-                                                {% if user.user_id == request.user.id %}
-                                                    <small class="text-primary">You</small>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary">
-                                            {{ user.points }} pts
-                                        </span>
-                                    </td>
-                                    <td>{{ user.quizzes_completed }}</td>
-                                    <td>{{ user.average_score }}%</td>
-                                    <td>
-                                        {% if user.rank <= 3 %}
-                                            <span class="badge bg-warning">Top Performer</span>
-                                        {% elif user.rank <= 10 %}
-                                            <span class="badge bg-success">Excellence</span>
-                                        {% elif user.rank <= 50 %}
-                                            <span class="badge bg-info">Active Player</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        
+                        <div class="podium-badge {% if user.rank == 1 %}gold{% elif user.rank == 2 %}silver{% else %}bronze{% endif %}">
+                            {% if user.rank == 1 %}🥇 Champion{% elif user.rank == 2 %}🥈 Runner-up{% else %}🥉 Third Place{% endif %}
+                        </div>
+                        
+                        <div class="user-avatar-large">
+                            {{ user.full_name|slice:":2"|upper }}
+                        </div>
+                        
+                        <h5 class="podium-name">{{ user.full_name }}</h5>
+                        <div class="podium-points">{{ user.points }} points</div>
+                        <div class="podium-stats">{{ user.quizzes_completed }} quizzes completed</div>
                     </div>
-                </div>
+                {% endfor %}
+            </div>
+        </div>
 
-                <!-- Period Info -->
-                <div class="text-center mt-4">
-                    <small class="text-muted">
-                        Showing {{ current_period|lower }} leaderboard 
-                        {% if leaderboard.start_date == leaderboard.end_date %}
-                            for {{ leaderboard.start_date|date:"F d, Y" }}
-                        {% else %}
-                            from {{ leaderboard.start_date|date:"M d" }} to {{ leaderboard.end_date|date:"M d, Y" }}
-                        {% endif %}
-                        • Last updated: {{ leaderboard.last_updated|timesince }} ago
-                    </small>
-                </div>
-
-            {% else %}
-                <!-- Empty State -->
-                <div class="empty-state text-center py-5">
-                    <div class="glass-morphism p-5 rounded-4">
-                        <i class="bi bi-trophy text-muted mb-3" style="font-size: 4rem;"></i>
-                        <h3 class="mb-3">No Rankings Available</h3>
+        <!-- Enhanced Leaderboard Table -->
+        <div class="leaderboard-table-container">
+            <div class="table-responsive">
+                <table class="table leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Points</th>
+                            <th>Quizzes</th>
+                            <th>Avg Score</th>
+                            <th>Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in leaderboard.top_users %}
+                        <tr class="{% if user.user_id == request.user.id %}current-user{% endif %}">
+                            <td>
+                                <span class="rank-badge {% if user.rank <= 3 %}top-3 rank-{{ user.rank }}{% else %}other{% endif %}">
+                                    {% if user.rank == 1 %}🥇{% elif user.rank == 2 %}🥈{% elif user.rank == 3 %}🥉{% else %}#{{ user.rank }}{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {{ user.full_name|slice:":2"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="user-name">{{ user.full_name }}</div>
+                                        {% if user.user_id == request.user.id %}
+                                            <div class="user-label">You</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="points-badge">
+                                    {{ user.points }} pts
+                                </span>
+                            </td>
+                            <td>{{ user.quizzes_completed }}</td>
+                            <td>{{ user.average_score }}%</td>
+                            <td>
+                                {% if user.rank <= 3 %}
+                                    <span class="performance-badge top">Top Performer</span>
+                                {% elif user.rank <= 10 %}
+                                    <span class="performance-badge excellent">Excellence</span>
+                                {% elif user.rank <= 50 %}
+                                    <span class="performance-badge active">Active Player</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Period Info -->
+            <div class="period-info">
+                Showing {{ current_period|lower }} leaderboard
+                {% if leaderboard.start_date == leaderboard.end_date %}
+                    for {{ leaderboard.start_date|date:"F d, Y" }}
+                {% else %}
+                    from {{ leaderboard.start_date|date:"M d" }} to {{ leaderboard.end_date|date:"M d, Y" }}
+                {% endif %}
+                • Last updated: {{ leaderboard.last_updated|timesince }} ago
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="empty-state">
+                    <div class="empty-state-content">
+                        <div class="empty-icon">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">No Rankings Available</h3>
                         <p class="text-muted mb-4">Be the first to take a quiz and appear on the leaderboard!</p>
-                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-glow">
+                        <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-lg">
                             <i class="bi bi-play-fill me-2"></i>Start Taking Quizzes
                         </a>
                     </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
-    </div>
+    {% endif %}
 
-    <!-- User Stats Card (if authenticated) -->
+    <!-- Enhanced User Stats Section -->
     {% if request.user.is_authenticated and user_profile %}
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card-glass p-4 rounded-4">
-                <h5 class="fw-bold mb-3">
-                    <i class="bi bi-person-circle me-2"></i>Your Stats
-                </h5>
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <div class="h4 text-primary fw-bold">{{ user_profile.total_points }}</div>
-                            <small class="text-muted">Total Points</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <div class="h4 text-success fw-bold">{{ user_profile.total_quizzes_completed }}</div>
-                            <small class="text-muted">Quizzes Completed</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <div class="h4 text-warning fw-bold">{{ user_profile.current_streak }}</div>
-                            <small class="text-muted">Current Streak</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <div class="h4 text-info fw-bold">{{ user_profile.level }}</div>
-                            <small class="text-muted">Level</small>
-                        </div>
-                    </div>
-                </div>
+    <div class="user-stats-section">
+        <h5 class="user-stats-title">
+            <i class="bi bi-person-circle"></i>
+            Your Stats
+        </h5>
+        <div class="user-stats-grid">
+            <div class="user-stat-card">
+                <div class="user-stat-number text-primary">{{ user_profile.total_points }}</div>
+                <div class="user-stat-label">Total Points</div>
+            </div>
+            <div class="user-stat-card">
+                <div class="user-stat-number text-success">{{ user_profile.total_quizzes_completed }}</div>
+                <div class="user-stat-label">Quizzes Completed</div>
+            </div>
+            <div class="user-stat-card">
+                <div class="user-stat-number text-warning">{{ user_profile.current_streak }}</div>
+                <div class="user-stat-label">Current Streak</div>
+            </div>
+            <div class="user-stat-card">
+                <div class="user-stat-number text-info">{{ user_profile.level }}</div>
+                <div class="user-stat-label">Level</div>
             </div>
         </div>
     </div>
     {% endif %}
 </div>
+{% endblock %}
 
-<style>
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate elements on load
+    const animatedElements = document.querySelectorAll('.podium-card, .leaderboard-table-container');
+    animatedElements.forEach((element, index) => {
+        setTimeout(() => {
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, (index + 1) * 100);
+    });
 
-.user-avatar-large {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.5rem;
-}
+    // Add loading states to period buttons
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (!this.classList.contains('active')) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Loading...';
+                this.style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.style.pointerEvents = 'auto';
+                }, 3000);
+            }
+        });
+    });
 
-.podium-card {
-    transform: translateY(0);
-    transition: transform 0.3s ease;
-}
+    // Animate user stats on scroll
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
 
-.podium-card:hover {
-    transform: translateY(-5px);
-}
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const numberElement = entry.target;
+                const finalNumber = parseInt(numberElement.textContent);
+                if (!isNaN(finalNumber)) {
+                    animateNumber(numberElement, 0, finalNumber, 1000);
+                    observer.unobserve(numberElement);
+                }
+            }
+        });
+    }, observerOptions);
 
-.rank-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 30px;
-    font-weight: bold;
-}
+    document.querySelectorAll('.user-stat-number, .podium-points').forEach(el => {
+        observer.observe(el);
+    });
 
-.table-hover tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
-}
-
-.trophy-icon {
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
+    function animateNumber(element, start, end, duration) {
+        const startTime = performance.now();
+        const isPercentage = element.textContent.includes('%');
+        
+        function updateNumber(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(start + (end - start) * progress);
+            
+            element.textContent = current + (isPercentage ? '%' : '');
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateNumber);
+            }
+        }
+        
+        requestAnimationFrame(updateNumber);
     }
-    40% {
-        transform: translateY(-10px);
+
+    // Add ripple effect to buttons
+    document.querySelectorAll('.period-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.6);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                left: ${x}px;
+                top: ${y}px;
+                width: 20px;
+                height: 20px;
+                margin-left: -10px;
+                margin-top: -10px;
+                pointer-events: none;
+            `;
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        .period-btn {
+            position: relative;
+            overflow: hidden;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Smooth scroll for period changes
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Highlight current user row
+    const currentUserRow = document.querySelector('.current-user');
+    if (currentUserRow) {
+        setTimeout(() => {
+            currentUserRow.style.animation = 'highlight 2s ease-in-out';
+        }, 1000);
     }
-    60% {
-        transform: translateY(-5px);
-    }
-}
-</style>
+
+    // Add highlight animation
+    const highlightStyle = document.createElement('style');
+    highlightStyle.textContent = `
+        @keyframes highlight {
+            0% { background: rgba(102, 126, 234, 0.1); }
+            50% { background: rgba(102, 126, 234, 0.2); }
+            100% { background: rgba(102, 126, 234, 0.1); }
+        }
+    `;
+    document.head.appendChild(highlightStyle);
+});
+</script>
 {% endblock %}
