@@ -438,8 +438,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <script src="{% static 'js/notyf_custom.js' %}"></script>
     <script>
+        // Initialize Notyf directly here to avoid 404 errors
+        window.notyf = new Notyf({
+            duration: 4000,
+            position: { x: 'right', y: 'top' },
+            dismissible: true,
+            ripple: true
+        });
+
         // Display Django messages as Notyf toasts
         {% for message in messages %}
             {% if message.tags == 'success' %}
@@ -484,8 +491,10 @@
                     }
                 }
 
-                validationDiv.className = `form-validation show ${isValid ? 'success' : 'error'}`;
-                validationDiv.innerHTML = `<i class="fas ${isValid ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1"></i>${message}`;
+                if (validationDiv) {
+                    validationDiv.className = `form-validation show ${isValid ? 'success' : 'error'}`;
+                    validationDiv.innerHTML = `<i class="fas ${isValid ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1"></i>${message}`;
+                }
                 return isValid;
             }
 
@@ -507,65 +516,45 @@
                 validateField(this, document.getElementById('passwordValidation'), rules);
             });
 
-            // Form submission with AJAX
+            // Simplified form submission - Use regular form submission instead of AJAX
             form.addEventListener('submit', function(e) {
-                e.preventDefault();
+                // Basic client-side validation
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
 
-                // Client-side validation
-                const isUsernameValid = validateField(usernameInput, document.getElementById('usernameValidation'), [
-                    { test: (val) => val.length > 0, message: 'Username is required' },
-                    { test: (val) => val.length >= 3, message: 'Username must be at least 3 characters' }
-                ]);
-                const isPasswordValid = validateField(passwordInput, document.getElementById('passwordValidation'), [
-                    { test: (val) => val.length > 0, message: 'Password is required' },
-                    { test: (val) => val.length >= 6, message: 'Password must be at least 6 characters' }
-                ]);
+                if (!username || !password) {
+                    e.preventDefault();
+                    notyf.error('Please fill in all fields.');
+                    return;
+                }
 
-                if (!isUsernameValid || !isPasswordValid) {
-                    notyf.error('Please correct the errors in the form.');
+                if (username.length < 3) {
+                    e.preventDefault();
+                    notyf.error('Username must be at least 3 characters.');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    e.preventDefault();
+                    notyf.error('Password must be at least 6 characters.');
                     return;
                 }
 
                 // Add loading state
                 loginBtn.classList.add('loading');
-                notyf.open({
-                    type: 'info',
-                    message: 'Logging in... Please wait.'
-                });
-
-                // Prepare form data
-                const formData = new FormData(form);
-
-                // Send AJAX request
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest' // Indicate AJAX request
+                loginBtn.disabled = true;
+                
+                // Add timeout to prevent infinite loading
+                setTimeout(function() {
+                    if (loginBtn.classList.contains('loading')) {
+                        loginBtn.classList.remove('loading');
+                        loginBtn.disabled = false;
+                        notyf.error('Login is taking too long. Please try again.');
                     }
-                })
-                .then(response => {
-                    loginBtn.classList.remove('loading');
-                    if (response.ok) {
-                        return response.json(); // Expect JSON response
-                    } else {
-                        throw new Error('Network response was not ok.');
-                    }
-                })
-                .then(data => {
-                    if (data.success) {
-                        notyf.success(data.message || 'Login successful!');
-                        // Redirect to the appropriate page
-                        window.location.href = data.redirect_url || '/';
-                    } else {
-                        notyf.error(data.message || 'An error occurred during login.');
-                    }
-                })
-                .catch(error => {
-                    loginBtn.classList.remove('loading');
-                    notyf.error('An error occurred. Please try again.');
-                    console.error('Error:', error);
-                });
+                }, 15000); // 15 second timeout
+                
+                // Let the form submit normally (no AJAX)
+                // The server will handle the authentication
             });
 
             // Input animations

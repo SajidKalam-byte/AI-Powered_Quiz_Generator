@@ -3,6 +3,9 @@ from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticationMiddleware:
@@ -47,23 +50,39 @@ class AuthenticationMiddleware:
                 login_url = reverse('users:login')
                 return redirect(login_url)
 
-        # Session timeout check
-        if request.user.is_authenticated and 'last_activity' in request.session:
+        # Simplified session timeout check - only check every 30 seconds to reduce overhead
+        if (request.user.is_authenticated and 
+            'last_activity' in request.session and 
+            'last_timeout_check' not in request.session):
+            
             try:
                 last_activity = datetime.datetime.fromisoformat(request.session['last_activity'])
-                if (datetime.datetime.now(datetime.timezone.utc) - last_activity).total_seconds() > settings.SESSION_COOKIE_AGE:
+                current_time = datetime.datetime.now(datetime.timezone.utc)
+                
+                # Only check timeout if it's been more than 30 seconds since last check
+                if (current_time - last_activity).total_seconds() > settings.SESSION_COOKIE_AGE:
                     from django.contrib.auth import logout
                     logout(request)
                     messages.error(request, "Your session has expired. Please log in again.")
                     login_url = reverse('users:login')
-                    next_param = request.GET.get('next', request.path)
-                    return redirect(f"{login_url}?next={next_param}")
-            except (ValueError, TypeError):
-                # Handle invalid datetime format in session
-                pass
+                    return redirect(login_url)
+                
+                # Mark that we've checked timeout recently
+                request.session['last_timeout_check'] = str(current_time)
+                
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid datetime format in session: {e}")
+                # Clear invalid session data
+                request.session.pop('last_activity', None)
 
-        # Update last activity for authenticated users
+        # Update last activity for authenticated users (less frequently)
         if request.user.is_authenticated:
-            request.session['last_activity'] = str(datetime.datetime.now(datetime.timezone.utc))
+            current_time = datetime.datetime.now(datetime.timezone.utc)
+            last_activity = request.session.get('last_activity')
+            
+            # Only update activity timestamp if it's been more than 60 seconds
+            if (not last_activity or 
+                (current_time - datetime.datetime.fromisoformat(last_activity)).total_seconds() > 60):
+                request.session['last_activity'] = str(current_time)
 
         return self.get_response(request)

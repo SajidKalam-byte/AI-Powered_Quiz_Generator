@@ -9,10 +9,13 @@ from django.urls import reverse
 from django.db.models import Avg, Count, Max
 from django.utils import timezone
 from django.conf import settings
+import logging
 from .models import CustomUser
 from .decorators import role_required
 from quizzes.models import Quiz, UserQuizAttempt
 from django.http import JsonResponse
+
+logger = logging.getLogger(__name__)
 
 
 def _redirect_authenticated_user(request, user, next_url=''):
@@ -147,29 +150,36 @@ def user_login(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
 
+        logger.info(f"Login attempt for username: {username}")
+
         if not all([username, password]):
-            message = "Username and password are required."
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'message': message})
-            messages.error(request, message)
+            messages.error(request, "Username and password are required.")
             return redirect('users:login')
 
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            request.session.set_expiry(3600)  # 1 hour
-            message = f"Welcome back, {user.full_name or user.username}!"
-            redirect_url = _redirect_authenticated_user(request, user, '').url
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'message': message, 'redirect_url': redirect_url})
-            messages.success(request, message)
-            return _redirect_authenticated_user(request, user, '')
-        
-        message = "Invalid username or password."
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'message': message})
-        messages.error(request, message)
-        return redirect('users:login')
+        try:
+            # Add timing for authentication
+            import time
+            start_time = time.time()
+            
+            user = authenticate(request, username=username, password=password)
+            auth_time = time.time() - start_time
+            
+            logger.info(f"Authentication took {auth_time:.2f} seconds")
+            
+            if user:
+                login(request, user)
+                request.session.set_expiry(3600)  # 1 hour
+                logger.info(f"Login successful for user: {user.username}")
+                messages.success(request, f"Welcome back, {user.full_name or user.username}!")
+                return _redirect_authenticated_user(request, user, '')
+            else:
+                logger.warning(f"Authentication failed for username: {username}")
+                messages.error(request, "Invalid username or password.")
+                return redirect('users:login')
+        except Exception as e:
+            logger.error(f"Login error for username {username}: {str(e)}")
+            messages.error(request, f"Login error: {str(e)}")
+            return redirect('users:login')
 
     # Render login template
     return render(request, 'users/login.html')
