@@ -815,13 +815,7 @@
             </div>
             
             {% if request.user.role == 'student' %}
-            <div class="info-item interactive-card">
-                <div class="info-label">
-                    <i class="bi bi-hash"></i>
-                    Roll Number
-                </div>
-                <div class="info-value">{{ request.user.student_roll_no|default:"Not assigned" }}</div>
-            </div>
+            
             
             <div class="info-item interactive-card">
                 <div class="info-label">
