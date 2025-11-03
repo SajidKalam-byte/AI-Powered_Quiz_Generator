@@ -4,7 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuizHub - AI-Powered Quiz Generator</title>
+    <title>QuizHub - AI-Powered Quiz Generator | Create & Take Interactive Quizzes</title>
+    <meta name="description" content="QuizHub is an AI-powered quiz platform where teachers create engaging quizzes and students test their knowledge. Generate quizzes from text, PDFs, and images with advanced AI technology.">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <meta property="og:title" content="QuizHub - AI-Powered Quiz Generator">
+    <meta property="og:description" content="Create interactive quizzes with AI or take quizzes to test your knowledge. Join thousands of students and teachers on QuizHub.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static 'media/quizhub-og-image.png' %}">
+    <meta property="og:site_name" content="QuizHub">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="QuizHub - AI-Powered Quiz Generator">
+    <meta name="twitter:description" content="Create interactive quizzes with AI or take quizzes to test your knowledge.">
+    <meta name="twitter:image" content="{% static 'media/quizhub-og-image.png' %}">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

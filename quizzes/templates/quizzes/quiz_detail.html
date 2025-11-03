@@ -1,6 +1,11 @@
 {% extends dashboard_template %}
 {% load custom_filters %}
 
+{% block title %}{{ quiz.title }} - QuizHub{% endblock %}
+{% block meta_description %}{{ quiz.description|truncatewords:30 }} Take this {{ quiz.get_difficulty_display }} quiz with {{ quiz.question_count }} questions. Time limit: {{ quiz.time_limit }} minutes.{% endblock %}
+{% block og_title %}{{ quiz.title }} - QuizHub{% endblock %}
+{% block og_description %}{{ quiz.description|truncatewords:20 }}{% endblock %}
+
 {% block extra_css %}
 <style>
     /* Enhanced Quiz Detail Page - Mobile-First */

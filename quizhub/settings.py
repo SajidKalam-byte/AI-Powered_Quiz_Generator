@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-91=6cu+ud6q1j&ex@$-oth*d)vbx9w(9hdnt=flyzd+hx8$-67
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['meetsajiddev.me', 'www.meetsajiddev.me']
+ALLOWED_HOSTS = ['meetsajiddev.me', 'www.meetsajiddev.me', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'users',
     'core',
     'quizzes',
@@ -172,6 +174,9 @@ LOGGING = {
         },
     },
 }
+
+# Site framework
+SITE_ID = 1
 
 # Session settings
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
